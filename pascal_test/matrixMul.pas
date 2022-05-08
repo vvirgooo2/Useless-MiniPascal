@@ -1,8 +1,8 @@
 program matrixMul;
 var
-    a, b, result : array [0 .. 25, 0 .. 25] of integer; // 矩阵变量
+    a, b, result : array [0 .. 25, 0 .. 25] of longint; // 矩阵变量
     rowA, rowB, columnA, columnB: longint; // 矩阵A/B的行列数
-    i, j, k : integer;
+    i, j, k, temp : integer;
 begin
     read(rowA, columnA); // 输入A的矩阵
     for i := 0 to rowA - 1 do
@@ -33,7 +33,7 @@ begin
                 result[i, j] := 0;
                 for k := 0 to rowB - 1 do
                 begin
-                    result[i, j] := result[i, j] + a[i, k] * b[k, j];
+                    result[i, j] := result[i, j] + (a[i, k] * b[k, j]);
                 end;
             end;
         end;

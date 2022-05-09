@@ -4,15 +4,15 @@ BaseNode 抽象类，基本方法， 基类指针
 
 下分五种大类：
 
-Type     有关类型的，记录类型
+Type     记录类型
 
-Expr      计算表达式类型的
+Expr     表达式
 
-Value    值类型的
+Value    值
 
-Stmt     语句类型的
+Stmt     语句
 
-Program 更高程度的抽象，代表程序中的部分
+Program  程序中的部分划分
 
 写了六个hpp文件，功能直接写到hpp里面好了（
 

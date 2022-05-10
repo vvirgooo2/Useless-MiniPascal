@@ -2,7 +2,7 @@
 
 BaseNode 抽象类，基本方法， 基类指针
 
-下分五种大类：
+下分六种大类：
 
 Type     记录类型
 
@@ -17,8 +17,109 @@ Program  程序中的部分划分
 写了六个hpp文件，功能直接写到hpp里面好了（
 
 
+程序结构：
+
+Program 分级:
+Program
+    Routine
+        DeclPart
+            ValPart    //全局变量
+                valdecllist
+        
+            FuncPart     //函数定义
+                FuncDecl
+                FuncBody
+                   DeclPart
+                   ExecutePart
+                returnstmt
+
+        ExecutePart
+            StmtList
+        
+
+ValPart 分级：
+ValPart：
+    valdecllist
+        valdecl
+            type 
+                simple / arraytype 两种
+            idlist
+                id
+        valdecl......
 
 
+FuncPart 分级：
+    Funcdecl
+        name
+        returntype
+        paraList
+    FuncBody
+        DeclPart
+        ExecutePart
+    returnstmt
+        IDExpr   //return哪个变量或立即数
+
+
+ExecutePart 分级：
+    StmtList
+        Stmt
+            AssignStmt
+                Expr
+                Expr
+            
+            ForStmt
+                val       // 循环变量
+                expr      // 结束
+                expr      // 起始
+                stmtlist     
+            
+            FuncCallStmt
+                funcname  //函数名
+                Exprlist  //参数
+            
+            RepeatStmt
+                expr     //condition
+                stmtList
+
+            WhileStmt
+                expr    //condition
+                StmtList
+
+            ElseStmt
+                stmtList
+
+
+            IfStmt
+                expr   //条件
+                stmtlist   //执行
+                ElseStmt 
+            
+            BreakStmt
+
+
+Expr 分级：
+    Exprlist
+        Expr
+            BinExpr   //二元
+            UnaryExpr //单目
+            FunCallExpr 
+                func_name
+                ExprList
+            ArrayExpr 
+                arrayname
+                Expr
+            IDExpr  //一个立即数或者变量名
+
+
+
+
+
+
+ps.嵌套定义函数不知道做不做，
+目前不是非常支持嵌套定义，但是留下了修改的空间，
+一个routine可以成为一个递归单元，但是routine目前没有存好东西，
+全局的routine和函数的routine存的有参数列表
+感觉有些冗余，建议删掉过程
 
 
 

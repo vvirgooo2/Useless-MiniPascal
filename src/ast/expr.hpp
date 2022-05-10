@@ -1,10 +1,14 @@
-#ifndef EXPR_HPP_
-#define EXPR_HPP_
+#pragma once
 
 #include<string>
+#include "base.hpp"
 using namespace std;
 
+//广义表达式
+class Expr : public BaseNode{
+    Expr():BaseNode("expr"){
+        
+    }
+};
 
   
-
-#endif

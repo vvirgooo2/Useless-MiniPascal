@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "*.pas": "pascal",
-        "xlocale": "cpp"
+        "iostream": "cpp",
+        "string": "cpp"
     }
 }

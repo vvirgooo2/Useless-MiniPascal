@@ -1,5 +1,4 @@
-#ifndef BASE_HPP_
-#define BASE_HPP_
+#pragma once
 
 #include<iostream>
 #include<string>
@@ -10,8 +9,9 @@ using namespace std;
 
 class BaseNode{    
 public: 
-    string id;
+    string id="base";
+    BaseNode(string id){
+        this->id = id;
+    }
 
-}
-
-#endif
+};

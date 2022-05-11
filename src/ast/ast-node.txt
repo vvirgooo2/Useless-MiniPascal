@@ -1,29 +1,19 @@
-共需要多少种node:
 
-BaseNode 抽象类，基本方法， 基类指针
+几个容易混的
 
-下分4种大类：
+ParaList要带Type, 仅用于函数定义
+ExprList拥有函数调用
 
-Expr     表达式
+IDExpr 是一个值的节点，可以存变量名，也可以存立即数
 
-Value-Type  值和类型
-
-Stmt     语句
-
-Program  程序中的部分划分
-
-写了5个hpp文件，功能直接写到hpp里面好了（
-正在简化
+也就是说，程序运行段最后的运算总会落到IDExpr的基本单元上
 
 程序结构：
 
 Program 分级:
 Program
-    
         DeclPart
-            
-            VarDeclList
-        
+            VarDeclList 
             FuncDeclList     //函数定义
                 OneFuncDecl
                     FuncHead
@@ -31,20 +21,17 @@ Program
                         DeclPart
                         ExecPart
                         returnstmt
-
         ExecPart
             StmtList
         
 
 VarPart 分级：
 VarPart：
-    vardecllist
-        vardecl   //initial存这里面吧
+    VarDeclList
+        VarDecl   
             type 
-                simple / arraytype 两种
             idlist
-                id
-            IDExpr
+            IDExpr //initial存这里面吧
         
 
 
@@ -64,11 +51,11 @@ ExecutePart 分级：
     StmtList
         Stmt
             AssignStmt
-                Expr
+                ID
                 Expr
             
             ForStmt
-                val       // 循环变量
+                ID       // 循环变量
                 expr      // 结束
                 expr      // 起始
                 stmtlist     

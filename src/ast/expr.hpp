@@ -36,20 +36,10 @@ private:
     Expr* lhs;
     Expr* rhs;
 public:
-    BinExpr(string op, Expr* l, Expr* r):Expr("binexpr"){
-        this->op=op;    
-        this->lhs=l;
-        this->rhs=r;
-    }
-    string getOp(){
-        return this->op;
-    }
-    Expr* getLeftExprNode(){
-        return this->lhs;
-    }
-    Expr* getRightExprNode(){
-        return this->rhs;
-    }
+    BinExpr(string op, Expr* l, Expr* r):Expr("binexpr"),op(op),lhs(l),rhs(r){ }
+    string getOp(){ return this->op; }
+    Expr* getLeftExprNode(){ return this->lhs; }
+    Expr* getRightExprNode(){ return this->rhs; }
 };
 
 class UnaryExpr: public Expr{
@@ -57,16 +47,9 @@ private:
     string op; //NOT
     Expr* ex;
 public:
-    UnaryExpr(string op, Expr* e):Expr("unaryexpr"){
-        this->op=op;
-        this->ex=e;
-    }
-    string getOp(){
-        return this->op;
-    }
-    Expr* getExprNode(){
-        return this->ex;
-    }
+    UnaryExpr(string op, Expr* e):Expr("unaryexpr"),op(op),ex(e){ }
+    string getOp(){ return this->op; }
+    Expr* getExprNode(){ return this->ex; }
 };
 
 class FunCallExpr:public Expr{
@@ -74,16 +57,9 @@ private:
     string funcname;
     ExprList* el;
 public:
-    FunCallExpr(string n, ExprList* l):Expr("funcallexpr"){
-        this->funcname=n;
-        this->el=l;
-    }
-    string getFuncName(){
-        return this->funcname;
-    }
-    ExprList* getExprListNode(){
-        return this->el;
-    }
+    FunCallExpr(string n, ExprList* l):Expr("funcallexpr"),funcname(n),el(l){ }
+    string getFuncName(){ return this->funcname; }
+    ExprList* getExprListNode(){ return this->el; }
 };
 
 class ArrayExpr:public Expr{
@@ -91,16 +67,9 @@ private:
     string arrayname;
     Expr* expr;
 public:
-    ArrayExpr(string a, Expr* e):Expr("arrayexpr"){
-        this->arrayname=a;
-        this->expr=e;
-    }
-    string getArrayName(){
-        return this->arrayname;
-    }
-    Expr* getIndexExprNode(){
-        return this->expr;
-    }
+    ArrayExpr(string a, Expr* e):Expr("arrayexpr"),arrayname(a),expr(e){ }
+    string getArrayName(){ return this->arrayname; }
+    Expr* getIndexExprNode(){ return this->expr; }
 };
 
 class IDExpr:public Expr{
@@ -112,39 +81,20 @@ private:
     float f;
     string str;
 public:
-    IDExpr(string t, int i):Expr("idexpr"){
-        this->type=t;
-        this->immtype="integer";
-        this->i=i;
-    }
-    IDExpr(string t,float f):Expr("idexpr"){
-        this->type = t;
-        this->immtype="string";
-        this->str=str;
-    }
-    IDExpr(string t,string str):Expr("idexpr"){
-        this->type=t;
+    IDExpr(string t, int i):Expr("idexpr"),type(t),immtype("integer"),i(i){ }
+    IDExpr(string t, float f):Expr("idexpr"),type(t),immtype("string"),str(str){ }
+    IDExpr(string t, string str):Expr("idexpr"),type(t){
         if(t=="var") this->varname=str;
         else if(t=="Imm"){
             this->str=str;
             this->immtype="string";
         }
     }
-    string getType(){
-        return this->type;
-    }
-    string getVarName(){
-        return this->varname;
-    }
-    int getIntValue(){
-        return this->i;
-    }
-    float getFloatValue(){
-        return this->f;
-    }
-    string getStringValue(){
-        return this->str;
-    }
+    string getType(){ return this->type;}
+    string getVarName(){ return this->varname; }
+    int getIntValue(){ return this->i; }
+    float getFloatValue(){ return this->f; }
+    string getStringValue(){ return this->str; }
 };
 
   

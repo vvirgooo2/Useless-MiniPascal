@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "*.pas": "pascal",
-        "iostream": "cpp",
-        "string": "cpp"
-    }
-}

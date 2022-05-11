@@ -14,27 +14,17 @@ class IDExpr;
 //广义表达式
 class Expr : public BaseNode{
 public:
-    Expr(string t):BaseNode(t){
-        
-    }
+    Expr(string t):BaseNode(t){ }
 };
 
 class ExprList: public BaseNode{
 private:
     vector<Expr*> exlist;
 public:
-    ExprList():BaseNode("exprlist"){
-
-    }
-    ExprList(Expr* e):BaseNode("exprlist"){
-        exlist.push_back(e);
-    }
-    void pushExprNode(Expr* e){
-        this->exlist.push_back(e);
-    }
-    vector<Expr*> getExprList(){
-        return this->exlist;
-    }
+    ExprList():BaseNode("exprlist"){ }
+    ExprList(Expr* e):BaseNode("exprlist"){ exlist.push_back(e); }
+    void pushExprNode(Expr* e){ this->exlist.push_back(e); }
+    vector<Expr*> getExprList(){ return this->exlist; }
 };
 
 class BinExpr: public Expr{

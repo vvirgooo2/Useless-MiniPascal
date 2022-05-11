@@ -57,6 +57,9 @@ public:
     IDList():BaseNode("idlist"){
 
     }
+    IDList(ID* id):BaseNode("idlist"){
+        list.push_back(id);
+    }
     void PushId(ID* id){
         (this->list).push_back(id);
     }

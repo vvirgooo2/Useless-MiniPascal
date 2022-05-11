@@ -63,6 +63,9 @@ public:
     FuncDeclList():BaseNode("funcdecllist"){
 
     }
+    FuncDeclList(OneFuncDecl* of):BaseNode("funcdecllist"){
+        funclist.push_back(of);
+    }
     void pushOneFuncDecl(OneFuncDecl* f){
         this->funclist.push_back(f);
     }

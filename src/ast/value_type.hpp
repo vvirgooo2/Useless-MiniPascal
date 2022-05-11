@@ -10,6 +10,7 @@ class ArrayType;
 class ID;
 class IDList;
 class ParaList;
+
 //变量定义的list
 class VarDeclList:public BaseNode{
 private:

@@ -6,7 +6,8 @@
 #include<vector>
 
 using namespace std;
-
+class BaseNode;
+ 
 class BaseNode{    
 private:
     //ClassName

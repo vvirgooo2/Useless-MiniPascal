@@ -15,6 +15,11 @@ class WhileStmt;
 class ElseStmt;
 class IFStmt;
 class BreakStmt;
+class RepeatStmt;
+class WhileStmt;
+class ElseStmt;
+class IfStmt;
+class BreakStmt;
 
 class Stmt: public BaseNode{
 public:
@@ -38,9 +43,6 @@ public:
 
 class AssignStmt: public Stmt{
 private:
-    string op; /* GE, GT, LE, LT, EQUAL, UNEQUAL,
-                PLUS, MINUS, OR, MUL, REALDIV,
-                DIV, MOD, AND*/
     Expr* lexpr;
     Expr* rexpr;
 public:
@@ -53,9 +55,6 @@ public:
     }
     Expr* getRightExprNode(){
         return this->rexpr;
-    }
-    string getOp(){
-        return this->op;
     }
 };
 
@@ -120,6 +119,64 @@ public:
     }
 };
 
+class WhileStmt:public Stmt{
+private:
+    Expr* con;
+    StmtList* sl;
+public:
+    WhileStmt(Expr* e, StmtList* s):Stmt("whilestmt"){
+        this->con=e;
+        this->sl=s;
+    }
+    Expr* getConditionExprNode(){
+        return this->con;
+    }
+    StmtList* getStmtListNode(){
+        return this->sl;
+    }
+
+};
+
+class ElseStmt: public Stmt{
+private:
+    StmtList* list;
+public:
+    ElseStmt(StmtList* l):Stmt("elsestmt"){
+        this->list=l;
+    }
+    StmtList* getStmtListNode(){
+        return this->list;
+    }
+};
+
+class IfStmt: public Stmt{
+private:
+    Expr* con;
+    StmtList* list;
+    ElseStmt* els;
+public:
+    IfStmt(Expr* e, StmtList* l, ElseStmt* el):Stmt("ifstmt"){
+        this->con=e;
+        this->list=l;
+        this->els=el;
+    }
+    Expr* getConditionNode(){
+        return this->con;
+    }
+    StmtList* getStmtListNode(){
+        return this->list;
+    }
+    ElseStmt* getElseStmtNode(){
+        return this->els;
+    }
+};
+
+class BreakStmt:public Stmt{
+public:
+    BreakStmt():Stmt("breakstmt"){
+
+    }
+};
 
 
 

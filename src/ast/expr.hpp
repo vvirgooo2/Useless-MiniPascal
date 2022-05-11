@@ -26,6 +26,9 @@ public:
     ExprList():BaseNode("exprlist"){
 
     }
+    ExprList(Expr* e):BaseNode("exprlist"){
+        exlist.push_back(e);
+    }
     void pushExprNode(Expr* e){
         this->exlist.push_back(e);
     }

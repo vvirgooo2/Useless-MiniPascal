@@ -33,6 +33,9 @@ public:
     StmtList():BaseNode("stmtlist"){
 
     }
+    StmtList(Stmt* st):BaseNode("stmtlist"){
+        list.push_back(st);
+    }
     void pushStmt(Stmt* st){
         list.push_back(st);
     }
@@ -43,15 +46,15 @@ public:
 
 class AssignStmt: public Stmt{
 private:
-    Expr* lexpr;
+    ID* id;
     Expr* rexpr;
 public:
-    AssignStmt(Expr* l, Expr* r):Stmt("assignstmt"){
-        this->lexpr = l;
+    AssignStmt(ID* l, Expr* r):Stmt("assignstmt"){
+        this->id = l;
         this->rexpr = r;
     }
-    Expr* getLeftExprNode(){
-        return this->lexpr;
+    ID* getLeftExprNode(){
+        return this->id;
     }
     Expr* getRightExprNode(){
         return this->rexpr;

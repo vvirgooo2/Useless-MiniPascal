@@ -13,23 +13,24 @@ Stmt     语句
 Program  程序中的部分划分
 
 写了5个hpp文件，功能直接写到hpp里面好了（
-
+正在简化
 
 程序结构：
 
 Program 分级:
 Program
-    Routine
+    
         DeclPart
-            VarPart    //全局变量
-                vardecllist
+            
+            VarDeclList
         
-            FuncPart     //函数定义
-                FuncDecl
-                FuncBody
-                   DeclPart
-                   ExecPart
-                   returnstmt
+            FuncDeclList     //函数定义
+                OneFuncDecl
+                    FuncHead
+                    FuncBody
+                        DeclPart
+                        ExecPart
+                        returnstmt
 
         ExecPart
             StmtList
@@ -43,10 +44,11 @@ VarPart：
                 simple / arraytype 两种
             idlist
                 id
-        vardecl......
+            IDExpr
+        
 
 
-FuncPart 分级：
+OneFuncDecl 分级：
     Funcdecl
         name
         Type
@@ -119,6 +121,26 @@ ps.嵌套定义函数不知道做不做，
 全局的routine和函数的routine存的有参数列表
 感觉有些冗余，建议删掉过程
 
+一个pascal测试程序，ast_test建立相应语法树
 
+
+
+/*
+program test;
+var
+    a,b:integer ;
+    c: string ;
+
+function Testout(in:string):integer
+begin
+    writeln(in);
+end
+
+begin
+    c='1234';
+    for i:=1 to 100 do
+        writeln(c);
+end.
+*/
 
 

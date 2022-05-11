@@ -2,40 +2,29 @@
 #include "base.hpp"
 #include "value_type.hpp"
 #include "stmt.hpp"
+#include "expr.hpp"
 #include <iostream>
 #include <string>
 #include <memory>
 using namespace std;
 //定义
-class Routine;
 class DeclPart;
-class VarPart;
-class FuncPart;
-class FuncDecl;
+class FuncDeclList;
+class OneFuncDecl;
+class FuncHead;
 class FuncBody;
 class ExecPart;
 
 
-//全局根节点
-class Program: public BaseNode{
-private:
-    Routine *routine;
-public:
-    Program(Routine *routine):BaseNode("program"){
-        this-> routine = routine;
-    }
-    Routine* getRoutineNode(){
-        return this->routine;
-    } 
-};
 
 //子程序,目前只有一个，留给嵌套定义做扩展
-class Routine: public BaseNode{
+class Program: public BaseNode{
 private:
     DeclPart *declpart;
     ExecPart *execpart;
 public:
-    Routine(DeclPart* d, ExecPart* e):BaseNode("routine"){
+    string Program_name;
+    Program(DeclPart* d, ExecPart* e):BaseNode("program"){
         this->declpart = d;
         this->execpart = e;
     }
@@ -51,40 +40,48 @@ public:
 //定义段
 class DeclPart: public BaseNode{
 private:
-    VarPart *varpart;
+    VarDeclList *varpart;
+    FuncDeclList* funclist;
 public:
-    DeclPart(VarPart* v):BaseNode("declpart"){
+    DeclPart(VarDeclList* v,FuncDeclList* f):BaseNode("declpart"){
         this->varpart=v;
+        this->funclist = f;
     }
-    VarPart *getVarPartNode(){
+    VarDeclList *getVarPartNode(){
         return this->varpart;
+    }
+    FuncDeclList* getFuncPartNode(){
+        return this->funclist;
     }
 };
 
-//全局变量定义
-class VarPart: public BaseNode{
+
+class FuncDeclList:public BaseNode{
 private:
-    VarDeclList* vdlist;
+    vector<OneFuncDecl*> funclist;
 public:
-    VarPart(VarDeclList *v):BaseNode("varpart"){
-        this->vdlist = v;
+    FuncDeclList():BaseNode("funcdecllist"){
+
     }
-    VarDeclList* getVarDeclListNode(){
-        return this->vdlist;
+    void pushOneFuncDecl(OneFuncDecl* f){
+        this->funclist.push_back(f);
+    }
+    vector<OneFuncDecl*> getFuncList(){
+        return this->funclist;
     }
 };
 
 //函数定义段
-class FuncPart: public BaseNode{
+class OneFuncDecl: public BaseNode{
 private:
-    FuncDecl* fd;
+    FuncHead* fd;
     FuncBody* fb;
 public:
-    FuncPart(FuncDecl* d, FuncBody* b):BaseNode("funcpart"){
+    OneFuncDecl(FuncHead* d, FuncBody* b):BaseNode("onefuncdecl"){
         this->fd = d;
         this->fb = b;
     }
-    FuncDecl* getFuncDeclNode(){
+    FuncHead* getFuncDeclNode(){
         return this->fd;
     }
     FuncBody* getFuncBodyNode(){
@@ -92,13 +89,13 @@ public:
     }
 };
 
-class FuncDecl: public BaseNode{
+class FuncHead: public BaseNode{
 private:
     string funcname;
     Type* rty;
     ParaList* pl;
 public: 
-    FuncDecl(string n, Type* t,ParaList* p):BaseNode("funcdecl"){
+    FuncHead(string n, Type* t,ParaList* p):BaseNode("funchead"){
         this->funcname=n;
         this->rty = t;
         this->pl=p;
@@ -118,12 +115,12 @@ class FuncBody: public BaseNode{
 private:
     DeclPart* dp;
     ExecPart* ex;
-    Stmt*  st;
+    Expr*  ret;
 public:
-    FuncBody(DeclPart* p, ExecPart* e, Stmt* s):BaseNode("funcbody"){
+    FuncBody(DeclPart* p, ExecPart* e, Expr* s):BaseNode("funcbody"){
         this->dp = p;
         this->ex = e;
-        this->st = s;
+        this->ret = s;
     }
     DeclPart* getDeclPartNode(){
         return this->dp;
@@ -131,8 +128,8 @@ public:
     ExecPart* getExecPartNode(){
         return this->ex;
     }
-    Stmt* getReturnStmtNode(){
-        return this->st;
+    Expr* getReturnStmtNode(){
+        return this->ret;
     }
 };
 

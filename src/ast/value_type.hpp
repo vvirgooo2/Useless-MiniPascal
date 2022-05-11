@@ -2,6 +2,7 @@
 #include<string>
 #include"base.hpp"
 #include<vector>
+#include"expr.hpp"
 using namespace std;
 class VarDecl;
 class Type;
@@ -34,6 +35,7 @@ private:
     IDList* list;
 
 public:
+    IDExpr* initial;
     VarDecl(Type* t, IDList* l):BaseNode("vardecl"){
         this->type = t;
         this->list= l ;

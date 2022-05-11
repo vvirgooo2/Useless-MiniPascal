@@ -2,19 +2,17 @@
 
 BaseNode 抽象类，基本方法， 基类指针
 
-下分六种大类：
-
-Type     记录类型
+下分4种大类：
 
 Expr     表达式
 
-Value    值
+Value-Type  值和类型
 
 Stmt     语句
 
 Program  程序中的部分划分
 
-写了六个hpp文件，功能直接写到hpp里面好了（
+写了5个hpp文件，功能直接写到hpp里面好了（
 
 
 程序结构：
@@ -23,36 +21,36 @@ Program 分级:
 Program
     Routine
         DeclPart
-            ValPart    //全局变量
-                valdecllist
+            VarPart    //全局变量
+                vardecllist
         
             FuncPart     //函数定义
                 FuncDecl
                 FuncBody
                    DeclPart
-                   ExecutePart
-                returnstmt
+                   ExecPart
+                   returnstmt
 
-        ExecutePart
+        ExecPart
             StmtList
         
 
-ValPart 分级：
-ValPart：
-    valdecllist
-        valdecl
+VarPart 分级：
+VarPart：
+    vardecllist
+        vardecl   //initial存这里面吧
             type 
                 simple / arraytype 两种
             idlist
                 id
-        valdecl......
+        vardecl......
 
 
 FuncPart 分级：
     Funcdecl
         name
-        returntype
-        paraList
+        Type
+        ParaList
     FuncBody
         DeclPart
         ExecutePart

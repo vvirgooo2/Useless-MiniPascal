@@ -8,10 +8,14 @@
 using namespace std;
 
 class BaseNode{    
+private:
+    //ClassName
+    string classname="base";
 public: 
-    string id="base";
-    BaseNode(string id){
-        this->id = id;
+    BaseNode(string name){
+        this->classname = name;
     }
-
+    string getClass() const{
+        return this->classname;
+    }
 };

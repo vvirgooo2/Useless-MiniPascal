@@ -1,15 +1,17 @@
 
 #include <iostream>
-#include"base.hpp"
-#include"program.hpp"
+#include "./base.hpp"
+#include "./program.hpp"
 using namespace std;
-
 
 int main()
 {
-    BaseNode *p= new Program();
-    BaseNode *r= new Routine();
-    
+    //Routine *r = new Routine();
+    //Program* p = new Program(r);
+    // cout<<p->getRoutineNode()->getClass()<<endl;
+    // cout<<p->getClass()<<endl;
+
+
 
 
 }

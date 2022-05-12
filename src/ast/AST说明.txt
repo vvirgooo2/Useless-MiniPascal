@@ -2,7 +2,7 @@
 几个容易混的
 
 ParaList要带Type, 仅用于函数定义
-ExprList拥有函数调用
+ExprList用于函数调用
 
 IDExpr 是一个值的节点，可以存变量名，也可以存立即数
 

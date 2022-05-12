@@ -65,11 +65,13 @@ public:
 class ArrayExpr:public Expr{
 private:
     string arrayname;
-    Expr* expr;
+    vector<Expr*> index_list;
 public:
-    ArrayExpr(string a, Expr* e):Expr("arrayexpr"),arrayname(a),expr(e){ }
+    ArrayExpr(string a, Expr* e):Expr("arrayexpr"),arrayname(a){ index_list.push_back(e); }
+    ArrayExpr(string a): Expr("arratexpr"),arrayname(a){}
     string getArrayName(){ return this->arrayname; }
-    Expr* getIndexExprNode(){ return this->expr; }
+    void pushIndexDim(Expr* e){ index_list.push_back(e); }
+    vector<Expr*> getIndexExprList(){ return this->index_list;}
 };
 
 class IDExpr:public Expr{

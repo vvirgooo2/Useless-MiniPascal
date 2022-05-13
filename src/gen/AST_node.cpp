@@ -29,7 +29,7 @@ llvm::Value* Program::CodeGen(CodeGenContext &context){
 }
 
 llvm::Value* DeclPart::CodeGen(CodeGenContext &context){
-    
+    return NULL;
 }
 
 llvm::Value* FuncDeclList::CodeGen(CodeGenContext &context){
@@ -89,11 +89,25 @@ llvm::Value* BreakStmt::CodeGen(CodeGenContext &context){
 }
 
 llvm::Value* VarDeclList::CodeGen(CodeGenContext &context){
-    
+    vector<VarDecl*> list = this->getList();
+    for(int i=0;i<list.size();i++){
+        list[i]->CodeGen(context);
+    }
+    return NULL;
 }
 
 llvm::Value* VarDecl::CodeGen(CodeGenContext &context){
-    
+    auto list=this->getIDListNode()->getList();
+    MyType* ty= this->getTypeNode();
+    if(ty->getClass()=="simpletype"){
+        cout<<((SimpleType*)ty)->getSimpleTypeName()<<" ";
+    }
+    else{
+        cout<<((ArrayType*)ty)->getTypeName()<<" ";
+    }
+    for(int i=0;i<list.size();i++){
+        cout<<list[i];
+    }
 }
 
 llvm::Value* IDList::CodeGen(CodeGenContext &context){

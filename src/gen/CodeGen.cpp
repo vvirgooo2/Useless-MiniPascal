@@ -5,7 +5,15 @@ using namespace std;
 void CodeGenContext::generate(BaseNode* root){
     Program* r = (Program*) root;
     cout<<"Starting Generating..."<<endl;
-    
+    vector<llvm::Type*> argTypes;
+    //返回int32，无参数,不接不定参数
+    llvm::FunctionType *ftype = llvm::FunctionType::get(this->builder.getInt32Ty(),false); 
+    this->mainFunction = llvm::Function::Create(ftype,llvm::Function::ExternalLinkage,"main",this->module);
+    llvm::BasicBlock* block = llvm::BasicBlock::Create(this->module->getContext(),"entry",mainFunction);
+    this->builder.SetInsertPoint(block);
+
+    cout<<"Global Var:"<<endl;
+    r->getDeclPartNode()->getVarListNode()->CodeGen(*this);
 }
 
 llvm::GenericValue CodeGenContext::runCode(){

@@ -1,10 +1,7 @@
 
 #include <iostream>
-#include "../base.hpp"
-#include "../program.hpp"
-#include "../stmt.hpp"
-#include "../expr.hpp"
-#include "../value_type.hpp"
+#include "../ast/AST_node.h"
+
 using namespace std;
 
 int main()

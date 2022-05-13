@@ -19,4 +19,5 @@ public:
     string getClass() const{
         return this->classname;
     }
+    //virtual llvm::Value CodeGen(CodeGenContext &context)=0;
 };

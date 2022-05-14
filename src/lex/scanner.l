@@ -8,7 +8,6 @@ void yyerror(char*);
 %}
 %option noyywrap
 
-%%
 
 digit [0-9]
 int -?[0-9]{digit}*
@@ -17,9 +16,8 @@ letter [a-zA-Z]
 string \"[^"]*\"
 char \'[.]\'
 id ({letter}|_)+({letter}|_|{digit})*
-newline \n
-space [ \t]+
 
+%%
 /* type */
 "integer" {return TYPE_INT;}
 "short" {return TYPE_INT_8;}
@@ -119,16 +117,8 @@ space [ \t]+
 /* error */
 . {yyerror("wrong syntax!")}
 
+%%
 /* function */
 void yyerror(char *s) {
   printf("%s\n", s);
 }
-
-
-
-
-
-
-
-
-

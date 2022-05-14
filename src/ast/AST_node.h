@@ -191,7 +191,7 @@ private:
 
 public:
     DeclPart(VarDeclList *v, FuncDeclList *f) : BaseNode("declpart"), varpart(v), funclist(f) {}
-    VarDeclList *getVarPartNode() { return this->varpart; }
+    VarDeclList *getVarListNode() { return this->varpart; }
     FuncDeclList *getFuncPartNode() { return this->funclist; }
     virtual llvm::Value *CodeGen(CodeGenContext &context);
 };
@@ -490,8 +490,9 @@ private:
     int dim;
     vector<pair<int, int>> index_arrange; // start end，对应维度
 public:
-    ArrayType(string n) : MyType("arraytype"), dim(0) {}
+    ArrayType(string n) : MyType("arraytype"), dim(0), tyname(n) {}
     int getDim() { return this->dim; }
+    string getTypeName() { return tyname; }
     vector<pair<int, int>> getIndexArrange() { return this->index_arrange; }
     void pushNewDim(int s, int e)
     {

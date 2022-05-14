@@ -214,7 +214,7 @@ void Dict::genFrom_DeclPart(DeclPart *node)
 { // VarDeclList + FuncDeclList
     this->key = "DeclPart";
     this->valType = "dict";
-    Dict *VarDeclListDict = new Dict(node->getVarPartNode());
+    Dict *VarDeclListDict = new Dict(node->getVarListNode());
     Dict *FuncDeclListDict = new Dict(node->getFuncPartNode());
     addOneDictValue(VarDeclListDict);
     addOneDictValue(FuncDeclListDict);

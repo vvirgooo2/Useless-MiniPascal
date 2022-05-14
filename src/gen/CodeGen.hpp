@@ -3,7 +3,7 @@
 #include <vector>
 #include <stack>
 #include <map>
-#include <llvm/IR/Module.h>
+#include "/usr/include/llvm-6.0/llvm/IR/Module.h"
 #include <llvm/IR/Function.h>
 #include <llvm/IR/DerivedTypes.h>
 #include <llvm/IR/LLVMContext.h>
@@ -37,7 +37,7 @@ private:
     llvm::Function *mainFunction;
     llvm::LLVMContext globalcontext;
 public:
-   
+    bool isGlobal=true;
     llvm::Module *module;
     llvm::IRBuilder<> builder;
     CodeGenContext():builder(globalcontext){
@@ -47,9 +47,6 @@ public:
     llvm::GenericValue runCode();
     std::map<std::string,llvm::Value*>& locals(){
         return blocks.back()->locals;
-    }
-    std::map<std::string,llvm::Value*>& globals(){
-        return blocks.front()->locals;
     }
     llvm::BasicBlock* currentBlock(){
         return blocks.back()->block;

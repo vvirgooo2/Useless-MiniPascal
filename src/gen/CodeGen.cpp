@@ -1,5 +1,8 @@
 #include "CodeGen.hpp"
 #include <iostream>
+#include <fstream>
+#include <unistd.h>
+#include <fcntl.h>
 using namespace std;
 
 void CodeGenContext::generate(BaseNode* root){
@@ -11,9 +14,19 @@ void CodeGenContext::generate(BaseNode* root){
     this->mainFunction = llvm::Function::Create(ftype,llvm::Function::ExternalLinkage,"main",this->module);
     llvm::BasicBlock* block = llvm::BasicBlock::Create(this->module->getContext(),"entry",mainFunction);
     this->builder.SetInsertPoint(block);
+    pushBlock(block);
+    cout<<"Global Decl:"<<endl;
+    r->getDeclPartNode()->CodeGen(*this);
 
-    cout<<"Global Var:"<<endl;
-    r->getDeclPartNode()->getVarListNode()->CodeGen(*this);
+    this->builder.SetInsertPoint(block); //reset insert point
+    cout<<"Global Exec:"<<endl;
+    r->getExecPartNode()->CodeGen(*this);
+    this->builder.CreateRet(this->builder.getInt32(0));
+    int fd = open("result.ll", O_CREAT | O_WRONLY, 0644);
+    dup2(fd, 1);
+    close(fd);
+    this->module->print(llvm::outs(),nullptr);
+
 }
 
 llvm::GenericValue CodeGenContext::runCode(){

@@ -60,7 +60,7 @@ int main()
 program test;
 var
     a,b:integer ;
-    c: string ;
+    c: integer ;
 
 function Testout(in:string):integer
 begin
@@ -68,7 +68,7 @@ begin
 end
 
 begin
-    c='1234';
+    c=1;
     for a:=1 to 100 do
         writeln(c);
 end.

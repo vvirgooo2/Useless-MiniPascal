@@ -36,6 +36,7 @@ id ({letter}|_)+({letter}|_|{digit})*
 "string" {return TYPE_STRING;}
 
 /* op */
+"not" {return NOT;}
 "+" {return ADD;}
 "-" {return SUB;}
 "*" {return MUL;}
@@ -48,12 +49,14 @@ id ({letter}|_)+({letter}|_|{digit})*
 ">=" {return GREQ;}
 "<=" {return LESQ;}
 "<>" {return NE;}
+"or" {return OR;}
+"and" {return AND;}
 ":=" {return ASSIGN;}
 ".." {return ARANGE;}
 "[" {return LBR;}
 "]" {return RBR;}
 "(" {return LPR;}
-")" {return RBR;}
+")" {return RPR;}
 "." {return PERIOD;}
 "," {return COM;}
 ":" {return COL;}
@@ -68,6 +71,7 @@ id ({letter}|_)+({letter}|_|{digit})*
 "break" {return BREAK;}
 "case" {return CASE;}
 "const" {return CONST;}
+"to" {return TO;}
 "do" {return DO;}
 "else" {return ELSE;}
 "end" {return END;}

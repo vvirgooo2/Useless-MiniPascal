@@ -46,8 +46,9 @@ class CodeGenContext{
 private:
     std::vector<CodeGenBlock *> blocks;
     //主函数
-    
+    std::map<std::string,pair<int,int>> arrayrecord;
 public:
+    
     bool isGlobal=true;
     bool genpointer=false;
     llvm::Module *module;
@@ -100,5 +101,14 @@ public:
         return c->getValueSymbolTable()->lookup(name);
     }
     llvm::Function *regisprintf();
+    void setArrayRecord(string name, int s, int e){
+        this->arrayrecord[name]=make_pair(s,e);
+    }
+    pair<int,int> getArrayRecord(string name){
+        if(arrayrecord.find(name)!=arrayrecord.end()){
+            return arrayrecord[name];
+        }
+        else throw std::runtime_error("ArrayRecord not found: "+name);
+    }
 };
 

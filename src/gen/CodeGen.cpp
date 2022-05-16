@@ -57,7 +57,7 @@ int main(){
     //c: string
     IDList* l1=new IDList();
     l1->pushID("c");
-    vdl->pushVarDecl(new VarDecl(new SimpleType("integer"),l1));
+    vdl->pushVarDecl(new VarDecl(new ArrayType((string)"integer",1,7),l1));
 
     //function DeclList
     //Head
@@ -82,12 +82,12 @@ int main(){
     //ExecPart
     StmtList* stl2 =new StmtList();
     //assign
-    AssignStmt* as = new AssignStmt(new IDExpr("var",(string)"c"),new IDExpr("Imm",190));
+    AssignStmt* as = new AssignStmt(new IDExpr("var",(string)"a"),new IDExpr("Imm",190));
     stl2->pushStmt(as);
     //for
     StmtList* forsubst =new StmtList();
     forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("var",(string)"a"))));
-    ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("var",(string)"c"),forsubst);
+    ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("Imm",100),forsubst);
     stl2->pushStmt(fo);
     //
     ExecPart* execp = new ExecPart(stl2);

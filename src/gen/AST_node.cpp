@@ -1,14 +1,5 @@
 #include "../ast/AST_node.h"
 llvm::Type* getLLVMtype(MyType* typenode,CodeGenContext &context);
-
-
-
-
-
-
-
-
-
 /*---------------------------Expr-------------------------*/
 llvm::Value* BinExpr::CodeGen(CodeGenContext &context){
     cout<<"Generating BinExpr..."<<endl;
@@ -94,11 +85,33 @@ llvm::Value* UnaryExpr::CodeGen(CodeGenContext &context){
 
 llvm::Value* FunCallExpr::CodeGen(CodeGenContext &context){
     cout<<"CodeGen FuncallExpression..."<<endl;
-    
-    return NULL;
+    auto callee = context.module->getFunction(this->getFuncName());
+    if(callee==nullptr){
+        throw std::runtime_error("No Function called: "+this->getFuncName());
+    }
+    vector<llvm::Value*> args;
+    for(auto it : this->getExprListNode()->getExprList()){
+        args.push_back(it->CodeGen(context));
+    }
+    return context.builder.CreateCall(callee,args);
 }
 
 llvm::Value* ArrayExpr::CodeGen(CodeGenContext &context){
+    bool ptr = context.genpointer;
+    //get index
+    context.genpointer=false;
+    auto index = this->getIndexExprNode()->CodeGen(context);
+    context.genpointer=ptr;
+    auto arrptr = context.getValue(this->getArrayName());
+    string funcname = context.curfunction->getName();
+    string name  = funcname+"/"+this->getArrayName();
+    int start = context.getArrayRecord(name).first;
+    auto sr = context.builder.getInt32(start);
+    auto trueindex = context.builder.CreateBinOp(llvm::Instruction::Sub,index,sr);
+    if(context.genpointer)
+        return context.builder.CreateGEP(arrptr,trueindex);
+    else 
+        return context.builder.CreateLoad(context.builder.CreateGEP(arrptr,trueindex));
     return NULL;
 }
 
@@ -145,7 +158,71 @@ llvm::Value* FuncDeclList::CodeGen(CodeGenContext &context){
 }
 
 llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
+    //create function
+    cout<<"Generating OneFuncDecl "+ this->getFuncDeclNode()->getFuncName()<<endl;
+    vector<llvm::Type *> para_types;
+    auto list = this->getFuncDeclNode()->getParaList()->getParaList();
+    for(auto it:list){
+        VarDecl *onedecl = it;
+        vector<string> ids = onedecl->getIDListNode()->getList();
+        MyType* type = onedecl->getTypeNode();
+        if(type->getClass()=="arraytype")
+            throw runtime_error("Unspport array type parameters");
+        llvm::Type *llvmty = getLLVMtype(type,context);
+        for(int i=0;i<ids.size();i++){
+            para_types.push_back(llvmty);
+        }
+    }
+    llvm::Type *rettype = getLLVMtype(this->getFuncDeclNode()->getRetType(),context);
+    llvm::FunctionType *func_type = llvm::FunctionType::get(rettype,llvm::makeArrayRef(para_types),false);
+    llvm::Function *function = llvm::Function::Create(func_type,llvm::Function::ExternalLinkage,
+        this->getFuncDeclNode()->getFuncName(),context.module);
     
+    if(function->getName() != this->getFuncDeclNode()->getFuncName()){
+        throw std::runtime_error("ReDefination of function");
+    }
+    llvm::BasicBlock* entry = llvm::BasicBlock::Create(context.module->getContext(),"entry",function);
+    auto old_function = context.curfunction;
+    context.curfunction = function;
+    auto  old_block = context.currentBlock();
+    context.pushBlock(entry);
+    context.builder.SetInsertPoint(entry);
+    //initial para
+    llvm::Value *para_values;
+    auto valueiter = function->arg_begin();
+    context.isGlobal = false;
+    for(auto decl :this->getFuncDeclNode()->getParaList()->getParaList()){
+        decl->CodeGen(context);
+        for(auto id: decl->getIDListNode()->getList()){
+            para_values = valueiter;
+            valueiter++;
+            para_values->setName(id);
+            context.builder.CreateStore(para_values,context.getValue(id));
+        }
+    }
+    //return value
+    auto r = context.builder.CreateAlloca(rettype,0,function->getName());
+    auto assign = new AssignStmt(new IDExpr("var",function->getName()),new IDExpr("Imm",0));
+    assign->CodeGen(context);
+
+    //body
+    this->getFuncBodyNode()->CodeGen(context);
+
+    //return
+    llvm::Value* result = context.builder.CreateLoad(r,false,"");
+    context.builder.CreateRet(result);
+
+    while(context.currentBlock()!=old_block)
+        context.popBLock();
+    
+    context.builder.SetInsertPoint(old_block);
+    context.curfunction = old_function;
+    return NULL;
+}
+
+llvm::Value* FuncBody::CodeGen(CodeGenContext &context){
+    this->getDeclPartNode()->CodeGen(context);
+    this->getExecPartNode()->CodeGen(context);
     return NULL;
 }
 
@@ -219,7 +296,6 @@ llvm::Value* ForStmt::CodeGen(CodeGenContext &context){
     nextBlock->block = next;
     context.popBLock();
     context.pushCodeGenBlock(nextBlock);
-    
     context.builder.SetInsertPoint(next);
     return ret;
 }
@@ -243,9 +319,6 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
                 throw runtime_error("String output not implement");
             }
         }
-        if(call->getFuncName()=="writeln"){
-            format+="\n";
-        }
 
         auto format_const = llvm::ConstantDataArray::getString(context.builder.getContext(),format.c_str());
         auto format_var = new llvm::GlobalVariable(*context.module,
@@ -263,7 +336,7 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
         auto call = context.builder.CreateCall(context.printf_func, llvm::makeArrayRef(args), "");
         return call;
     }
-    else if(call->getFuncPartName()=="read" || call->getFuncName()=="readln"){
+    else if(call->getFuncName()=="read" || call->getFuncName()=="readln"){
 
     }
     return NULL;
@@ -279,7 +352,9 @@ llvm::Value* FuncCallStmt::CodeGen(CodeGenContext &context){
         return SysCall(this,context);
     }
     else{
-
+        // user's function
+        auto Funcall = new FunCallExpr(this->getFuncName(),this->getParaExprListNode());
+        return Funcall->CodeGen(context);
     }
     return NULL;
 }
@@ -374,6 +449,15 @@ llvm::Value* IfStmt::CodeGen(CodeGenContext &context){
     context.popBLock();
     context.pushCodeGenBlock(nextBlock);
     
+
+
+    return NULL;
+}
+
+llvm::Value* BreakStmt::CodeGen(CodeGenContext &context){
+    if(context.getTopBlock()->Breakto==NULL)
+        throw std::runtime_error("BreakStmt not in any loop body");
+    context.builder.CreateBr(context.getTopBlock()->Breakto);
     return NULL;
 }
 
@@ -388,10 +472,42 @@ llvm::Value* VarDeclList::CodeGen(CodeGenContext &context){
     }
     return NULL;
 }
-llvm::Value* createArray(CodeGenContext &context, ArrayType* typenode,vector<string> namelist){
+llvm::Value* createArray(CodeGenContext &context, MyType* typenode,vector<string> namelist){
+    ArrayType* node = (ArrayType*) typenode;
+    int len=node->getIndexArrage().second - node->getIndexArrage().first+1;
+    string name = node->getTypeName();
+    llvm::Type* simpletype = getLLVMtype(new SimpleType(name),context);
+    string funcname  = context.curfunction->getName();
+    for(string it:namelist){
+        context.builder.CreateAlloca(llvm::ArrayType::get(simpletype,len),NULL,it);
+        context.setArrayRecord(funcname+"/"+it,node->getIndexArrage().first,node->getIndexArrage().second);
+    }
     return NULL;
 }
-llvm::Value* createGlobalArray(CodeGenContext &context, ArrayType* typenode,vector<string> namelist){
+llvm::Value* createGlobalArray(CodeGenContext &context, MyType* typenode,vector<string> namelist){
+    ArrayType* node = (ArrayType*) typenode;
+    int len=node->getIndexArrage().second - node->getIndexArrage().first+1;
+    string name = node->getTypeName();
+    llvm::Type* simpletype = getLLVMtype(new SimpleType(name),context);
+    
+    llvm::Constant* init;
+    if(simpletype->isIntegerTy())
+        init = llvm::ConstantInt::get(simpletype,0);
+    else if(simpletype->isDoubleTy())
+        init = llvm::ConstantFP::get(simpletype,0.0);
+    else throw std::runtime_error("Unknown ArrayElementType:"+name);
+    std::vector<llvm::Constant*> initv;
+    for(int i=0;i<len;i++)
+        initv.push_back(init);
+
+    llvm::Constant* initarr = llvm::ConstantArray::get(llvm::ArrayType::get(simpletype,len),initv);
+    string funcname  = context.curfunction->getName();
+    for(string it:namelist){
+        context.setArrayRecord(funcname+"/"+it,node->getIndexArrage().first,node->getIndexArrage().second);
+        auto r = new llvm::GlobalVariable(*context.module,initarr->getType(),false,llvm::GlobalValue::PrivateLinkage,0,it);
+        r->setInitializer(initarr);
+        cout<<"Create GlobalArray: "+it<<endl;
+    }   
     return NULL;
 }
 
@@ -416,9 +532,12 @@ llvm::Type* getLLVMtype(MyType* typenode,CodeGenContext &context){
         }
     }
     else{
-        string t = ((ArrayType*)typenode)->getTypeName();
-        // todo
+        name = ((ArrayType*)typenode)->getTypeName();
+        int s=((ArrayType*)typenode)->getIndexArrage().first;
+        int e=((ArrayType*)typenode)->getIndexArrage().second;
+        return llvm::ArrayType::get(getLLVMtype(new SimpleType(name),context),e-s+1);
     }
+    throw runtime_error("Unknown type"+ name);
     return NULL;
 }
 
@@ -439,13 +558,13 @@ llvm::Value* VarDecl::CodeGen(CodeGenContext &context){
             llvm::Value * ret;
             for(auto i=list.begin(); i!=list.end(); i++){
                 ret = new llvm::GlobalVariable(*context.module,ty,false,llvm::GlobalVariable::ExternalLinkage,constant,*i);
-                cout<<"create: "<<*i<<endl;
+                cout<<"create global: "<<*i<<endl;
             }
                 return ret; 
         }
         else{
             //array type
-            return createGlobalArray(context,(ArrayType*)tn,list);
+            return createGlobalArray(context,tn,list);
         }
     }
     //not global
@@ -455,8 +574,7 @@ llvm::Value* VarDecl::CodeGen(CodeGenContext &context){
             llvm::Value * ret;
             for(auto i=list.begin(); i!=list.end(); i++){
                 ret = context.builder.CreateAlloca(type_,nullptr,*i);
-                cout<<"Create local"<<*i<<endl;
-                context.locals()[*i]=ret;
+                cout<<"Create local: "<<*i<<endl;
             }
             return ret;
         }
@@ -490,9 +608,7 @@ llvm::Value* Program::CodeGen(CodeGenContext &context){
 }
 
 
-llvm::Value* BreakStmt::CodeGen(CodeGenContext &context){
-    return NULL;
-}
+
 
 llvm::Value* ParaList::CodeGen(CodeGenContext &context){
     return NULL;
@@ -502,9 +618,7 @@ llvm::Value* FuncHead::CodeGen(CodeGenContext &context){
     return NULL;
 }
 
-llvm::Value* FuncBody::CodeGen(CodeGenContext &context){
-    return NULL;
-}
+
 llvm::Value* ProgHead::CodeGen(CodeGenContext &context){
     return NULL;
 }

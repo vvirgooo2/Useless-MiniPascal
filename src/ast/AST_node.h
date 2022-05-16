@@ -469,14 +469,11 @@ private:
     int sindex; // start end，对应维度
     int eindex; // end index
 public:
-    ArrayType() : MyType("arraytype") {}
-    ArrayType(int s, int e) : MyType("arraytype"), sindex(s), eindex(e) {}
-    void SetType(string t) { tyname = t; }
-    void Setindex(int s, int e)
-    {
-        sindex = s;
-        eindex = e;
-    }
+    ArrayType():MyType("arraytype"){ }
+    ArrayType(int s, int e):MyType("arraytype"),sindex(s),eindex(e){ }
+    ArrayType(string name,int s, int e):MyType("arraytype"),tyname(name),sindex(s),eindex(e){ }
+    void SetType(string t){ tyname = t; }
+    void Setindex(int s, int e){ sindex=s; eindex=e; }
     string getTypeName() { return tyname; }
     pair<int, int> getIndexArrage() { return make_pair(sindex, eindex); }
     // llvm::Value *CodeGen(CodeGenContext &context);

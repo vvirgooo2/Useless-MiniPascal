@@ -13,7 +13,8 @@ private:
 
     void addOneDictValue(Dict *dict);
 
-    void genFrom_Program(Program *node);   // DeclPart + ExecPart
+    void genFrom_Program(Program *node);   // ProgHead + DeclPart + ExecPart
+    void genFrom_ProgHead(ProgHead *node); // name
     void genFrom_DeclPart(DeclPart *node); // VarDeclList + FuncDeclList
 
     void genFrom_VarDeclList(VarDeclList *node); // VarDecl ...
@@ -25,9 +26,9 @@ private:
     void genFrom_FuncDeclList(FuncDeclList *node); // OneFuncDecl ...
     void genFrom_OneFuncDecl(OneFuncDecl *node);   // FuncHead + FuncBody
     void genFrom_FuncHead(FuncHead *node);         // Type + Paralist
-    void genFrom_ParaList(ParaList *node);         // Para ...
+    void genFrom_ParaList(ParaList *node);         // VarDecl ...
 
-    void genFrom_FuncBody(FuncBody *node); // DeclPart + ExecPart + Expr
+    void genFrom_FuncBody(FuncBody *node); // DeclPart + ExecPart
     void genFrom_ExecPart(ExecPart *node); // StmtList
 
     void genFrom_StmtList(StmtList *node);         // Stmt ...

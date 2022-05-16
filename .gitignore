@@ -1,2 +1,5 @@
 ./vscode/**
 **.exe
+**.json
+**.out
+**.app

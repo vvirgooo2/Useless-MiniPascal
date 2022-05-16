@@ -60,6 +60,11 @@ Dict::Dict(BaseNode *root)
         Program *node = (Program *)root;
         genFrom_Program(node);
     }
+    else if (nodeType == "proghead")
+    {
+        ProgHead *node = (ProgHead *)root;
+        genFrom_ProgHead(node);
+    }
     else if (nodeType == "declpart")
     {
         DeclPart *node = (DeclPart *)root;
@@ -201,13 +206,22 @@ void Dict::addOneDictValue(Dict *value)
 }
 
 void Dict::genFrom_Program(Program *node)
-{ // DeclPart + ExecPart
+{ // ProgHead + DeclPart + ExecPart
     this->key = "Program";
     this->valType = "dict";
+    Dict *ProgHeadDict = new Dict(node->getProgHeadNode());
     Dict *DeclPartDict = new Dict(node->getDeclPartNode());
     Dict *ExecPartDict = new Dict(node->getExecPartNode());
+    addOneDictValue(ProgHeadDict);
     addOneDictValue(DeclPartDict);
     addOneDictValue(ExecPartDict);
+}
+
+void Dict::genFrom_ProgHead(ProgHead *node)
+{ // leaf
+    this->key = "ProgHead";
+    this->valType = "str";
+    this->strValue = node->getProgName();
 }
 
 void Dict::genFrom_DeclPart(DeclPart *node)
@@ -233,7 +247,7 @@ void Dict::genFrom_VarDeclList(VarDeclList *node)
 }
 
 void Dict::genFrom_VarDecl(VarDecl *node)
-{ // MyType + IDlist + integer/float/string
+{ // MyType + IDlist
     this->key = "VarDecl";
     this->valType = "dict";
     string typeName;
@@ -251,24 +265,12 @@ void Dict::genFrom_VarDecl(VarDecl *node)
         ArrayType *arrayType = (ArrayType *)type;
         TypeDict = new Dict(arrayType);
         ArrayType *curtype = (ArrayType *)type;
-        typeName = curtype->getTyName(); // 获取基本类型
+        typeName = curtype->getTypeName(); // 获取基本类型
     }
     Dict *IDlistDict = new Dict(node->getIDListNode());
-    // Dict *IDExprDict = new Dict(node->initial);
-    Dict *initDict;
-    if (typeName == "integer" || typeName == "longint")
-        initDict = new Dict("IntInit", to_string(node->getInitInt()));
-    else if (typeName == "float")
-        initDict = new Dict("FloatInit", to_string(node->getInitFloat()));
-    else if (typeName == "string")
-        initDict = new Dict("StringInit", node->getInitString());
-    else if (typeName == "boolean")
-        initDict = new Dict("BooleanInit", to_string(node->getInitBoolean()));
 
     addOneDictValue(TypeDict);
     addOneDictValue(IDlistDict);
-    addOneDictValue(initDict);
-    // addOneDictValue(IDExprDict);
 }
 
 void Dict::genFrom_SimpleType(SimpleType *node)
@@ -282,16 +284,9 @@ void Dict::genFrom_ArrayType(ArrayType *node)
 { // leaf
     this->key = "ArrayType";
     this->valType = "str";
-
-    string str = "array[";
-    vector<pair<int, int>> index_arrange = node->getIndexArrange();
-    for (int i = 0; i < node->getDim(); i++)
-    {
-        if (i != 0)
-            str += ",";
-        str += to_string(index_arrange[i].first) + ".." + to_string(index_arrange[i].second);
-    }
-    str += "] of" + node->getTyName();
+    int start = node->getIndexArrage().first;
+    int end = node->getIndexArrage().first;
+    string str = "array[" + to_string(start) + ".." + to_string(end) + "] of" + node->getTypeName();
     this->strValue = str;
 }
 
@@ -356,11 +351,11 @@ void Dict::genFrom_FuncHead(FuncHead *node)
 }
 
 void Dict::genFrom_ParaList(ParaList *node)
-{ // Para ...
+{ // VarDecl ...
     this->key = "ParaList";
     this->valType = "dict";
 
-    vector<pair<MyType *, string>> paraList = node->getParaList();
+    vector<VarDecl *> paraList = node->getParaList();
     for (int i = 0; i < paraList.size(); i++)
     {
         Dict *ParaDict = new Dict(paraList[i]);
@@ -369,16 +364,14 @@ void Dict::genFrom_ParaList(ParaList *node)
 }
 
 void Dict::genFrom_FuncBody(FuncBody *node)
-{ // DeclPart + ExecPart + Expr
+{ // DeclPart + ExecPart
     this->key = "FuncBody";
     this->valType = "dict";
 
     Dict *DeclPartDict = new Dict(node->getDeclPartNode());
     Dict *ExecPartDict = new Dict(node->getExecPartNode());
-    Dict *ExprDict = this->genFrom_Expr(node->getReturnExprNode());
     addOneDictValue(DeclPartDict);
     addOneDictValue(ExecPartDict);
-    addOneDictValue(ExprDict);
 }
 
 void Dict::genFrom_ExecPart(ExecPart *node)
@@ -625,25 +618,27 @@ void Dict::genFrom_IDExpr(IDExpr *node)
     else
     {
         string ImmType = node->getImmType();
-        if (ImmType == "integer" || ImmType == "longint")
+        Dict *immDict;
+        if (ImmType == "integer")
         {
-            Dict *immDict = new Dict("IntValue", to_string(node->getIntValue()));
-            addOneDictValue(immDict);
+            immDict = new Dict("IntValue", to_string(node->getIntValue()));
+        }
+        else if (ImmType == "longint")
+        {
+            immDict = new Dict("LongIntValue", to_string(node->getLongIntValue()));
         }
         else if (ImmType == "float")
         {
-            Dict *immDict = new Dict("FloatValue", to_string(node->getFloatValue()));
-            addOneDictValue(immDict);
+            immDict = new Dict("FloatValue", to_string(node->getFloatValue()));
         }
         else if (ImmType == "string")
         {
-            Dict *immDict = new Dict("StringValue", node->getStringValue());
-            addOneDictValue(immDict);
+            immDict = new Dict("StringValue", node->getStringValue());
         }
         else if (ImmType == "boolean")
         {
-            Dict *immDict = new Dict("BooleanValue", to_string(node->getBooleanValue()));
-            addOneDictValue(immDict);
+            immDict = new Dict("BooleanValue", to_string(node->getBooleanValue()));
         }
+        addOneDictValue(immDict);
     }
 }

@@ -524,4 +524,3 @@ public:
     vector<VarDecl*> getParaList(){ return this->pa; }
     llvm::Value* CodeGen(CodeGenContext &context);
 };
->>>>>>> Stashed changes

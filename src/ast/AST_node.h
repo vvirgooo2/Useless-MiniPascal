@@ -123,16 +123,16 @@ class ArrayExpr : public Expr
 {
 private:
     string arrayname;
-    vector<Expr *> index_list;
+    Expr* index;
 
 public:
-    ArrayExpr(string a, Expr* e):Expr("arrayexpr"),arrayname(a){ index_list.push_back(e); }
+    ArrayExpr(string a, Expr* e):Expr("arrayexpr"),arrayname(a),index(e){  }
     ArrayExpr():Expr("arrayexpr"){ }
     ArrayExpr(string a): Expr("arratexpr"),arrayname(a){}
     string getArrayName(){ return this->arrayname; }
     void SetName(string t){ arrayname = t; }
-    void pushIndexDim(Expr* e){ index_list.push_back(e); }
-    vector<Expr*> getIndexExprList(){ return this->index_list;}
+    void Setindex(Expr* e){ index=e; }
+    Expr* getIndexExprNode(){ return this->index;}
     virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 

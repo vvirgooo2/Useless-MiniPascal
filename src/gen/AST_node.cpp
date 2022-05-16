@@ -139,12 +139,13 @@ llvm::Value* DeclPart::CodeGen(CodeGenContext &context){
 llvm::Value* FuncDeclList::CodeGen(CodeGenContext &context){
     auto list=this->getFuncList();
     for(auto iter=list.begin(); iter!=list.end(); iter++){
-      auto ret=  (*iter)->CodeGen(context);
+        (*iter)->CodeGen(context);
     }
     return NULL;
 }
 
 llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
+    
     return NULL;
 }
 
@@ -261,10 +262,11 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
         args.insert(args.begin(), var_ref);
         auto call = context.builder.CreateCall(context.printf_func, llvm::makeArrayRef(args), "");
         return call;
-
-        
+    }
+    else if(call->getFuncPartName()=="read" || call->getFuncName()=="readln"){
 
     }
+    return NULL;
 }
 
 
@@ -273,8 +275,11 @@ llvm::Value* FuncCallStmt::CodeGen(CodeGenContext &context){
     if(this->getFuncName()=="write"||this->getFuncName()=="writeln"){
         return SysCall(this,context);
     }
-    if(this->getFuncName()=="read"||this->getFuncName()=="readln"){
+    else if(this->getFuncName()=="read"||this->getFuncName()=="readln"){
         return SysCall(this,context);
+    }
+    else{
+
     }
     return NULL;
 }

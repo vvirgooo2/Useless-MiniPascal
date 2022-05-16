@@ -82,12 +82,12 @@ int main(){
     //ExecPart
     StmtList* stl2 =new StmtList();
     //assign
-    AssignStmt* as = new AssignStmt(new IDExpr("var",(string)"c"),new IDExpr("Imm",1));
+    AssignStmt* as = new AssignStmt(new IDExpr("var",(string)"c"),new IDExpr("Imm",190));
     stl2->pushStmt(as);
     //for
     StmtList* forsubst =new StmtList();
     forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("var",(string)"a"))));
-    ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("Imm",100),forsubst);
+    ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("var",(string)"c"),forsubst);
     stl2->pushStmt(fo);
     //
     ExecPart* execp = new ExecPart(stl2);

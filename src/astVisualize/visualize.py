@@ -23,18 +23,16 @@ def subtree_plot(g, tree, parentIndex):
         g.edge(str(parentIndex), str(nodeIndex))
 
 
-def visualizeAST(jsonFilePath, filename):
-    with open(jsonFilePath, 'r') as jsonFile:
+def visualizeAST(filepath, filename):
+    with open(filepath, 'r') as jsonFile:
         astDict = json.load(jsonFile)
 
     g = Digraph("G", filename=filename, format='png', strict=False)
     rootLabel = list(astDict.keys())[0]
     g.node(str(nodeIndex), rootLabel)
     subtree_plot(g, astDict, 0)
-    g.view(filename=filename)
+    g.render(filename=filename, view=False)
 
 
 if __name__ == "__main__":
-    jsonFilePath = "./test.json"  # 生成的JSON路径
-    figName = "test"  #生成的图片名
-    visualizeAST(jsonFilePath, figName)
+    visualizeAST("./test.json", "test")

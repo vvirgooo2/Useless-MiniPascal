@@ -1,13 +1,12 @@
 %{
+#include <string>
+#include <iostream>
 #include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
-#include "../parser.hpp"
-void yyerror(char*);
+#include "y.tab.hpp"
+using namespace std;
+void yyerror(char* s);
 %}
 %option noyywrap
-
 
 digit [0-9]
 int -?[0-9]{digit}*
@@ -18,7 +17,6 @@ char \'[.]\'
 id ({letter}|_)+({letter}|_|{digit})*
 
 %%
-/* type */
 "integer" {return TYPE_INT;}
 "short" {return TYPE_INT_8;}
 "smallint" {return TYPE_INT_16;}
@@ -35,7 +33,6 @@ id ({letter}|_)+({letter}|_|{digit})*
 "char" {return TYPE_CHAR;}
 "string" {return TYPE_STRING;}
 
-/* op */
 "not" {return NOT;}
 "+" {return ADD;}
 "-" {return SUB;}
@@ -65,9 +62,8 @@ id ({letter}|_)+({letter}|_|{digit})*
 "true" {return TRUE;}
 "false" {return false;}
 
-/* saved words */
 "array" {return ARRAY;}
-"begin" {return BEGIN;}
+"begin" {return BEGN;}
 "break" {return BREAK;}
 "case" {return CASE;}
 "const" {return CONST;}
@@ -75,7 +71,6 @@ id ({letter}|_)+({letter}|_|{digit})*
 "do" {return DO;}
 "else" {return ELSE;}
 "end" {return END;}
-"file" {return FILE;}
 "for" {return FOR;}
 "function" {return FUNC;}
 "if" {return IF;}
@@ -92,24 +87,23 @@ id ({letter}|_)+({letter}|_|{digit})*
 "write" {return WRITE;}
 "Writeln" {return WRITELN;}
 
-/* value */
 {int} {
-    yylval.ival = atoi(yytext);
+    yylval.type_int = atoi(yytext);
     return INT;
 }
 
 {float} {
-    yylval.fval = atof(yytext);
+    yylval.type_float = atof(yytext);
     return FLOAT;
 }
 
 {string} {
-    yylval.sval = strdup(yytext);
+    yylval.type_string = strdup(yytext);
     return STRING;
 }
 
 {char} {
-    yylval.cval = yytext[0];
+    yylval.type_char = yytext[0];
     return CHAR;
 }
 
@@ -118,11 +112,10 @@ id ({letter}|_)+({letter}|_|{digit})*
     return ID;
 }
 
-/* error */
-. {yyerror("wrong syntax!")}
+. {printf("wrong syntax!");}
 
 %%
-/* function */
 void yyerror(char *s) {
   printf("%s\n", s);
 }
+

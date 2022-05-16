@@ -413,7 +413,7 @@ public:
     VarDeclList() : BaseNode("vardecllist") {}
     void pushVarDecl(VarDecl *v) { list.push_back(v); }
     vector<VarDecl *> &getList() { return this->list; }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 //每一个decl
@@ -428,7 +428,7 @@ public:
     VarDecl(MyType *t, IDList *l) : BaseNode("vardecl"), type(t), list(l) {}
     MyType *getTypeNode() { return this->type; }
     IDList *getIDListNode() { return this->list; }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 // idlist 变量名的列表
@@ -442,14 +442,14 @@ public:
     IDList(string id) : BaseNode("idlist") { list.push_back(id); }
     void pushID(string id) { (this->list).push_back(id); }
     vector<string> &getList() { return this->list; }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 class MyType : public BaseNode
 {
 public:
     MyType(string t) : BaseNode(t) {}
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 class SimpleType : public MyType
@@ -459,7 +459,7 @@ private:
 public:
     SimpleType(string tn) : MyType("simpletype"), tyname(tn) {}
     string getSimpleTypeName() { return this->tyname; }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 class ArrayType : public MyType
@@ -476,7 +476,7 @@ public:
     void Setindex(int s, int e){ sindex=s; eindex=e; }
     string getTypeName() { return tyname; }
     pair<int, int> getIndexArrage() { return make_pair(sindex, eindex); }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 //参数表
@@ -489,5 +489,5 @@ public:
     ParaList() : BaseNode("paralist") {}
     void pushNewPara(VarDecl *v) { pa.push_back(v); }
     vector<VarDecl *> getParaList() { return this->pa; }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };

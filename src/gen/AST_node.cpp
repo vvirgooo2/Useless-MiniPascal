@@ -202,8 +202,10 @@ llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
     }
     //return value
     auto r = context.builder.CreateAlloca(rettype,0,function->getName());
-    auto assign = new AssignStmt(new IDExpr("var",function->getName()),new IDExpr("Imm",0));
-    assign->CodeGen(context);
+    if(rettype->isIntegerTy())
+        context.builder.CreateStore(context.builder.getInt32(0),r);
+    else if(rettype->isDoubleTy())
+        context.builder.CreateStore(llvm::ConstantFP::get(rettype,0.0),r);
 
     //body
     this->getFuncBodyNode()->CodeGen(context);

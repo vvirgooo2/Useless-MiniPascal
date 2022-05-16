@@ -34,11 +34,9 @@ void CodeGenContext::generate(BaseNode* root){
     this->builder.SetInsertPoint(block); //reset insert point
     cout<<"Global Exec:"<<endl;
     r->getExecPartNode()->CodeGen(*this);
+  
     this->builder.CreateRet(this->builder.getInt32(0));
-    int fd = open("result.ll", O_CREAT | O_WRONLY, 0644);
-    dup2(fd, 1);
-    close(fd);
-    this->module->print(llvm::outs(),nullptr);
+    
 
 }
 
@@ -63,8 +61,8 @@ int main(){
     //Head
     FuncDeclList* funclist=new FuncDeclList();
     ParaList* pal =new ParaList();
-    pal->pushNewPara(new VarDecl(new SimpleType("integer"),new IDList("in")));
-    FuncHead* fd=new FuncHead("Testout",new SimpleType("integer"),pal); 
+    pal->pushNewPara(new VarDecl(new SimpleType("real"),new IDList("in")));
+    FuncHead* fd=new FuncHead("Testout",new SimpleType("real"),pal); 
     //Body
     DeclPart* d1 =new DeclPart(new VarDeclList(),new FuncDeclList());
     StmtList* Stl=new StmtList();
@@ -96,6 +94,12 @@ int main(){
     CodeGenContext* context = new CodeGenContext();
     try{
         context->generate(root);
+        
+        int fd = open("result.ll", O_CREAT | O_WRONLY, 0644);
+        dup2(fd, 1);
+        close(fd);
+          
+        context->module->print(llvm::outs(),nullptr);
     }
     catch (std::runtime_error &error){
         cout << "[Error] " << error.what() << endl;

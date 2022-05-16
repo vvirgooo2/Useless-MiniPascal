@@ -1,4 +1,14 @@
 #include "../ast/AST_node.h"
+llvm::Type* getLLVMtype(MyType* typenode,CodeGenContext &context);
+
+
+
+
+
+
+
+
+
 /*---------------------------Expr-------------------------*/
 llvm::Value* BinExpr::CodeGen(CodeGenContext &context){
     cout<<"Generating BinExpr..."<<endl;
@@ -214,7 +224,46 @@ llvm::Value* ForStmt::CodeGen(CodeGenContext &context){
 }
 llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
     if(call->getFuncName()=="write"||call->getFuncName()=="writeln"){
-        return NULL;
+        string format;
+        vector<llvm::Value*>  args;
+        for(auto arg: call->getParaExprListNode()->getExprList()){
+            auto r = arg->CodeGen(context);
+            if(r->getType()==context.builder.getInt32Ty()){
+                format += "%d";
+                args.push_back(r);
+            }
+            else if(r->getType()->isDoubleTy()){
+                format += "%lf";
+                args.push_back(r);
+            }
+            else if(r->getType()==context.builder.getInt8PtrTy()){
+                format += "%s";
+                args.push_back(r);
+                throw runtime_error("String output not implement");
+            }
+        }
+        if(call->getFuncName()=="writeln"){
+            format+="\n";
+        }
+
+        auto format_const = llvm::ConstantDataArray::getString(context.builder.getContext(),format.c_str());
+        auto format_var = new llvm::GlobalVariable(*context.module,
+                llvm::ArrayType::get(llvm::IntegerType::get(context.builder.getContext(),8),format.size()+1),
+                false,llvm::GlobalValue::PrivateLinkage,format_const,".str"
+            );
+        auto zero = llvm::Constant::getNullValue(llvm::IntegerType::getInt32Ty(context.globalcontext));
+        vector<llvm::Constant*> indices;
+        indices.push_back(zero);
+        indices.push_back(zero);
+
+        auto var_ref = llvm::ConstantExpr::getGetElementPtr(format_var->getValueType(), format_var, indices);
+
+        args.insert(args.begin(), var_ref);
+        auto call = context.builder.CreateCall(context.printf_func, llvm::makeArrayRef(args), "");
+        return call;
+
+        
+
     }
 }
 
@@ -222,7 +271,10 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
 llvm::Value* FuncCallStmt::CodeGen(CodeGenContext &context){
     cout<<"Generating FuncCallStmt..."<<endl;
     if(this->getFuncName()=="write"||this->getFuncName()=="writeln"){
-        SysCall(this,context);
+        return SysCall(this,context);
+    }
+    if(this->getFuncName()=="read"||this->getFuncName()=="readln"){
+        return SysCall(this,context);
     }
     return NULL;
 }

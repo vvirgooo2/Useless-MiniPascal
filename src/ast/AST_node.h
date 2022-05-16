@@ -501,18 +501,15 @@ class ArrayType : public MyType
 {
 private:
     string tyname;
-    int dim;
-    vector<pair<int, int>> index_arrange; // start end，对应维度
+    int sindex; // start end，对应维度
+    int eindex; // end index
 public:
-    ArrayType():MyType("arraytype"),dim(0){ }
+    ArrayType():MyType("arraytype"){ }
+    ArrayType(int s, int e):MyType("arraytype"),sindex(s),eindex(e){ }
     void SetType(string t){ tyname = t; }
-    int getDim(){ return this->dim; }
-    vector<pair<int,int>> getIndexArrange(){ return this->index_arrange; }
-    void pushNewDim(int s, int e){
-        index_arrange.push_back(make_pair(s,e));
-        dim++;
-    }
+    void Setindex(int s, int e){ sindex=s; eindex=e; }
     string getTypeName() { return tyname; }
+    pair<int,int> getIndexArrage() { return make_pair(sindex,eindex); }
     llvm::Value* CodeGen(CodeGenContext &context);
 };
 
@@ -527,3 +524,4 @@ public:
     vector<VarDecl*> getParaList(){ return this->pa; }
     llvm::Value* CodeGen(CodeGenContext &context);
 };
+>>>>>>> Stashed changes

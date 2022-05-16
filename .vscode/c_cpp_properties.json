@@ -1,26 +1,16 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "Linux",
             "includePath": [
-                "\\wsl.localhost\\Ubuntu-18.04\\usr\\bin\\",
-                "D:\\env\\llvm-project-llvmorg-14.0.0\\llvm\\lib",
-                "D:\\env\\llvm-project-llvmorg-14.0.0\\llvm\\include",
-                "D:\\env\\llvm-project-llvmorg-14.0.0\\llvm\\include\\llvm",
-                "\\wsl.localhost\\Ubuntu-18.04\\usr\\include\\llvm-6.0\\llvm",
-                "D:/env/llvm-project-llvmorg-14.0.0/llvm/include/llvm/IR"
+                "/usr/include/llvm-6.0/**",
+                "/usr/include/llvm-c-6.0/**",
+                "/usr/include/**"
             ],
-            "defines": [
-                "_DEBUG",
-                "UNICODE",
-                "_UNICODE"
-            ],
-            "windowsSdkVersion": "10.0.19041.0",
-            "compilerPath": "D:/env/mingw-w64-v9.0.0/mingw64/bin/gcc.exe",
-            "cStandard": "c17",
+            "defines": [],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c11",
             "cppStandard": "c++11",
-            "intelliSenseMode": "linux-gcc-x86",
-            "compilerArgs": []
         }
     ],
     "version": 4

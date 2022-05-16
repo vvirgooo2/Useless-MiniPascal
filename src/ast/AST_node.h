@@ -1,15 +1,8 @@
 #pragma once
-<<<<<<< Updated upstream
-#include <iostream>
-#include <string>
-#include <vector>
-#include "../gen/CodeGen.hpp"
-=======
 #include<iostream>
 #include<string>
 #include<vector>
-// #include "../gen/CodeGen.hpp"
->>>>>>> Stashed changes
+#include "../gen/CodeGen.hpp"
 using namespace std;
 
 class BaseNode;
@@ -43,6 +36,7 @@ class MyType;
 class SimpleType;
 class ArrayType;
 class IDList;
+class ProgHead;
 class ParaList;
 
 class BaseNode
@@ -60,7 +54,7 @@ public:
     {
         return this->classname;
     }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context) = 0;
+    virtual llvm::Value* CodeGen(CodeGenContext &context) = 0;
 };
 
 //广义表达式
@@ -80,7 +74,7 @@ public:
     ExprList(Expr* e):BaseNode("exprlist"){ exlist.push_back(e); }
     void pushExprNode(Expr* e){ this->exlist.push_back(e); }
     vector<Expr*> getExprList(){ return this->exlist; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class BinExpr : public Expr
@@ -98,7 +92,7 @@ public:
     string getOp(){ return this->op; }
     Expr* getLeftExprNode(){ return this->lhs; }
     Expr* getRightExprNode(){ return this->rhs; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class UnaryExpr: public Expr{
@@ -109,7 +103,7 @@ public:
     UnaryExpr(string op, Expr* e):Expr("unaryexpr"),op(op),ex(e){ }
     string getOp(){ return this->op; }
     Expr* getExprNode(){ return this->ex; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class FunCallExpr : public Expr
@@ -122,7 +116,7 @@ public:
     FunCallExpr(string n, ExprList* l):Expr("funcallexpr"),funcname(n),el(l){ }
     string getFuncName(){ return this->funcname; }
     ExprList* getExprListNode(){ return this->el; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class ArrayExpr : public Expr
@@ -139,7 +133,7 @@ public:
     void SetName(string t){ arrayname = t; }
     void pushIndexDim(Expr* e){ index_list.push_back(e); }
     vector<Expr*> getIndexExprList(){ return this->index_list;}
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 
@@ -150,6 +144,7 @@ private:
     string varname;
 
     string immtype; // integer, real, longint, char, bool
+    string str;
     int i;
     float f;
     char c;
@@ -159,10 +154,9 @@ private:
 public:
     IDExpr(string t, int i) : Expr("idexpr"), type(t), immtype("integer"), i(i) {}
     IDExpr(string t, float f) : Expr("idexpr"), type(t), immtype("string"), f(f) {}
-    IDExpr(string t, string str) : Expr("idexpr"), type(t)
-    {
-        if (t == "var")
-            this->varname = str;
+    IDExpr(string t, string s) : Expr("idexpr"), type(t){
+        if(t=="var") varname=s;
+        else if(t=="Imm") str=s;
     }
     IDExpr(string t, bool b):Expr("idexpr"),type(t),immtype("bool"),boolval(b){ }
     IDExpr(string t, char ch):Expr("idexpr"),type(t),immtype("char"),c(ch){ }
@@ -173,6 +167,8 @@ public:
     float getFloatValue() { return this->f; }
     bool getBooleanValue() { return this->boolval; }
     char getCharValue() {return this->c; }
+    int getLongIntValue() {return this->longval; }
+    string getStringValue() {return this->str; }
     virtual llvm::Value *CodeGen(CodeGenContext &context);
 };
 
@@ -188,7 +184,7 @@ public:
     ProgHead* getProgHeadNode(){ return this->progHead; }
     DeclPart* getDeclPartNode(){ return this->declpart; }
     ExecPart* getExecPartNode(){ return this->execpart; }
-   // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class ProgHead: public BaseNode{
@@ -197,7 +193,7 @@ private:
 public:
     ProgHead(string str):BaseNode("proghead"),name(str){ };
     string getProgName(){ return name; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class DeclPart : public BaseNode
@@ -209,7 +205,7 @@ public:
     DeclPart(VarDeclList* v,FuncDeclList* f):BaseNode("declpart"),varlist(v),funclist(f){ }
     VarDeclList *getVarListNode(){ return this->varlist; }
     FuncDeclList* getFuncPartNode(){ return this->funclist; }
-   // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class FuncDeclList : public BaseNode
@@ -222,7 +218,7 @@ public:
     FuncDeclList(OneFuncDecl* of):BaseNode("funcdecllist"){ funclist.push_back(of); }
     void pushOneFuncDecl(OneFuncDecl* f){ this->funclist.push_back(f); }
     vector<OneFuncDecl*> getFuncList(){ return this->funclist; }
-   // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 //函数定义段
@@ -236,7 +232,7 @@ public:
     OneFuncDecl(FuncHead* d, FuncBody* b):BaseNode("onefuncdecl"),fd(d),fb(b){ }
     FuncHead* getFuncDeclNode(){ return this->fd; }
     FuncBody* getFuncBodyNode(){ return this->fb; }
-   // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class FuncHead : public BaseNode
@@ -250,7 +246,7 @@ public:
     string getFuncName(){ return this->funcname; }
     MyType* getRetType(){ return this->rty; }
     ParaList* getParaList(){ return this->pl; }
-   // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class FuncBody : public BaseNode
@@ -263,7 +259,7 @@ public:
     FuncBody(DeclPart* p, ExecPart* e, Expr* s):BaseNode("funcbody"),dp(p),ex(e){ }
     DeclPart* getDeclPartNode(){ return this->dp; }
     ExecPart* getExecPartNode(){ return this->ex; }
-   // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class ExecPart : public BaseNode
@@ -274,7 +270,7 @@ private:
 public:
     ExecPart(StmtList* s):BaseNode("execpart"),sl(s){ }
     StmtList* getStmtListNode(){ return this->sl; }
-   // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class Stmt: public BaseNode{
@@ -292,7 +288,7 @@ public:
     StmtList(Stmt* st):BaseNode("stmtlist"){ list.push_back(st); }
     void pushStmt(Stmt* st){ list.push_back(st); }
     vector<Stmt*> getStmtList(){ return list; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 // id可以是arrayexpr 和 IDExpr
@@ -306,7 +302,7 @@ public:
     AssignStmt(Expr* l, Expr* r):Stmt("assignstmt"),id(l),rexpr(r){ }
     Expr* getLeftExprNode(){ return this->id; }
     Expr* getRightExprNode(){ return this->rexpr; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class ForStmt : public Stmt
@@ -323,7 +319,7 @@ public:
     Expr* getStartExprNode(){ return this->startexpr; }
     Expr* getEndExprNode(){ return this->endexpr; }
     StmtList* getLoopStmtNode(){ return this->stmtl; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class FuncCallStmt : public Stmt
@@ -336,7 +332,7 @@ public:
     FuncCallStmt(string name, ExprList* l):Stmt("funccallstmt"),funcname(name),el(l){ }
     string getFuncName(){ return this->funcname; }
     ExprList* getParaExprListNode(){ return this->el; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class RepeatStmt : public Stmt
@@ -349,7 +345,7 @@ public:
     RepeatStmt(Expr* e, StmtList* s):Stmt("repeatstmt"),cond(e),sl(s){ }
     Expr* getConditionExprNode(){ return this->cond; }
     StmtList* getLoopStmtNode(){ return this->sl; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class WhileStmt : public Stmt
@@ -362,7 +358,7 @@ public:
     WhileStmt(Expr* e, StmtList* s):Stmt("whilestmt"),con(e),sl(s){ }
     Expr* getConditionExprNode(){ return this->con; }
     StmtList* getStmtListNode(){ return this->sl; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class ElseStmt : public Stmt
@@ -374,7 +370,7 @@ public:
     ElseStmt(StmtList* l):Stmt("elsestmt"),list(l){ }
     ElseStmt():Stmt("elsestmt"){}
     StmtList* getStmtListNode(){ return this->list; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class IfStmt : public Stmt
@@ -388,14 +384,14 @@ public:
     Expr* getConditionNode(){ return this->con; }
     StmtList* getStmtListNode(){ return this->sl; }
     ElseStmt* getElseStmtNode(){ return this->els; }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class BreakStmt : public Stmt
 {
 public:
     BreakStmt():Stmt("breakstmt"){ }
-    // virtual llvm::Value* CodeGen(CodeGenContext &context);
+    virtual llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class VarDeclList : public BaseNode
@@ -407,7 +403,7 @@ public:
     VarDeclList():BaseNode("vardecllist"){  }
     void pushVarDecl(VarDecl* v){ list.push_back(v); }
     vector<VarDecl*>& getList(){ return this->list; }
-    // llvm::Value* CodeGen(CodeGenContext &context);
+    llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 //每一个decl
@@ -467,7 +463,7 @@ public:
     VarDecl(MyType* t, IDList* l):BaseNode("vardecl"),type(t),list(l){ }
     MyType* getTypeNode(){ return this->type; }
     IDList* getIDListNode(){ return this->list; }
-    // llvm::Value* CodeGen(CodeGenContext &context);
+    llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 // idlist 变量名的列表
@@ -481,14 +477,14 @@ public:
     IDList(string id):BaseNode("idlist"){ list.push_back(id); }
     void pushID(string id){ (this->list).push_back(id);}
     vector<string> &getList(){ return this->list; }
-    // llvm::Value* CodeGen(CodeGenContext &context);
+    llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class MyType : public BaseNode
 {
 public:
     MyType(string t):BaseNode(t){ }
-    // llvm::Value* CodeGen(CodeGenContext &context);
+    llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class SimpleType : public MyType
@@ -498,26 +494,23 @@ private:
 public:
     SimpleType(string tn):MyType("simpletype"),tyname(tn){}
     string getSimpleTypeName(){ return this->tyname; }
-    // llvm::Value* CodeGen(CodeGenContext &context);
+    llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 class ArrayType : public MyType
 {
 private:
     string tyname;
-    int dim;
-    vector<pair<int, int>> index_arrange; // start end，对应维度
+    int sindex; // start end，对应维度
+    int eindex; // end index
 public:
-    ArrayType():MyType("arraytype"),dim(0){ }
+    ArrayType():MyType("arraytype"){ }
+    ArrayType(int s, int e):MyType("arraytype"),sindex(s),eindex(e){ }
     void SetType(string t){ tyname = t; }
-    int getDim(){ return this->dim; }
-    vector<pair<int,int>> getIndexArrange(){ return this->index_arrange; }
-    void pushNewDim(int s, int e){
-        index_arrange.push_back(make_pair(s,e));
-        dim++;
-    }
+    void Setindex(int s, int e){ sindex=s; eindex=e; }
     string getTypeName() { return tyname; }
-    // llvm::Value* CodeGen(CodeGenContext &context);
+    pair<int,int> getIndexArrage() { return make_pair(sindex,eindex); }
+    llvm::Value* CodeGen(CodeGenContext &context);
 };
 
 //参数表
@@ -529,5 +522,5 @@ public:
     ParaList():BaseNode("paralist"){ }
     void pushNewPara(VarDecl* v){ pa.push_back(v); }
     vector<VarDecl*> getParaList(){ return this->pa; }
-    // llvm::Value* CodeGen(CodeGenContext &context);
+    llvm::Value* CodeGen(CodeGenContext &context);
 };

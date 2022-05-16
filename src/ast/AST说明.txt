@@ -50,7 +50,7 @@ ExecutePart 分级：
     StmtList
         Stmt
             AssignStmt
-                ID
+                Expr
                 Expr
             
             ForStmt

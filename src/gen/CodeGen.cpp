@@ -86,7 +86,7 @@ int main(){
     stl2->pushStmt(as);
     //for
     StmtList* forsubst =new StmtList();
-    forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("var","c"))));
+    forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("var",(string)"a"))));
     ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("Imm",100),forsubst);
     stl2->pushStmt(fo);
     //

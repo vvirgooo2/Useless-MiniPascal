@@ -159,7 +159,8 @@ public:
     {
         if (t == "var"){
             varname = s;
-        else if (t == "Imm")
+        }
+        else if (t == "Imm"){
             immtype = "string";
             str = s;
         }

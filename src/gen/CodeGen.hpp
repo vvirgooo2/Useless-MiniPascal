@@ -59,11 +59,11 @@ public:
 
     //system function
     llvm::Function *printf_func;
-    llvm::Function *getchar_func;
+    llvm::Function *scanf_func;
 
     CodeGenContext():builder(globalcontext){
         this->module = new llvm::Module("main",globalcontext);
-        this->printf_func = regisprintf();
+        regis();
     }
     void generate(BaseNode* root);
     llvm::GenericValue runCode();
@@ -100,7 +100,7 @@ public:
         }
         return c->getValueSymbolTable()->lookup(name);
     }
-    llvm::Function *regisprintf();
+    void regis();
     void setArrayRecord(string name, int s, int e){
         this->arrayrecord[name]=make_pair(s,e);
     }

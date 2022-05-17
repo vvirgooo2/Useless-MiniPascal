@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 using namespace std;
-llvm::Function *CodeGenContext::regisprintf(){
+void CodeGenContext::regis(){
     vector<llvm::Type *> argtypes;
     argtypes.push_back(llvm::Type::getInt8PtrTy(this->globalcontext));
     llvm::FunctionType *wtype  = llvm::FunctionType::get(llvm::Type::getInt32Ty(globalcontext),argtypes,true);
@@ -14,8 +14,16 @@ llvm::Function *CodeGenContext::regisprintf(){
         this->module
     );
     func->setCallingConv(llvm::CallingConv::C);
-    return func;
-}
+    this->printf_func = func;
+
+    llvm::Function* funcd = llvm::Function::Create(
+        wtype,llvm::Function::ExternalLinkage,
+        llvm::Twine("scanf"),
+        this->module
+    );
+    funcd->setCallingConv(llvm::CallingConv::C);
+    this->scanf_func = funcd;
+}   
 
 void CodeGenContext::generate(BaseNode* root){
     Program* r = (Program*) root;
@@ -84,7 +92,7 @@ int main(){
     stl2->pushStmt(as);
     //for
     StmtList* forsubst =new StmtList();
-    forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("var",(string)"a"))));
+    forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("Imm",(string)"123"))));
     ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("Imm",100),forsubst);
     stl2->pushStmt(fo);
     //

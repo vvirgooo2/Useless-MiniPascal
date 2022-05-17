@@ -154,13 +154,16 @@ private:
 
 public:
     IDExpr(string t, int i) : Expr("idexpr"), type(t), immtype("integer"), i(i) {}
-    IDExpr(string t, float f) : Expr("idexpr"), type(t), immtype("string"), f(f) {}
+    IDExpr(string t, float f) : Expr("idexpr"), type(t), immtype("float"), f(f) {}
     IDExpr(string t, string s) : Expr("idexpr"), type(t)
     {
-        if (t == "var")
+        if (t == "var"){
             varname = s;
         else if (t == "Imm")
+            immtype = "string";
             str = s;
+        }
+            
     }
     IDExpr(string t, bool b) : Expr("idexpr"), type(t), immtype("bool"), boolval(b) {}
     IDExpr(string t, char ch) : Expr("idexpr"), type(t), immtype("char"), c(ch) {}

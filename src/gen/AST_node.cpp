@@ -108,10 +108,11 @@ llvm::Value* ArrayExpr::CodeGen(CodeGenContext &context){
     int start = context.getArrayRecord(name).first;
     auto sr = context.builder.getInt32(start);
     auto trueindex = context.builder.CreateBinOp(llvm::Instruction::Sub,index,sr);
+    auto zero = llvm::ConstantInt::get(context.builder.getInt32Ty(),0);
     if(context.genpointer)
-        return context.builder.CreateGEP(arrptr,trueindex);
+        return context.builder.CreateInBoundsGEP(arrptr,{zero,trueindex});
     else 
-        return context.builder.CreateLoad(context.builder.CreateGEP(arrptr,trueindex));
+        return context.builder.CreateLoad(context.builder.CreateInBoundsGEP(arrptr,{zero,trueindex}));
     return NULL;
 }
 
@@ -132,6 +133,18 @@ llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
         }
         else if(this->immtype=="real"){
             return llvm::ConstantFP::get(context.module->getContext(), llvm::APFloat(this->getFloatValue()));
+        }
+        else if(this->immtype=="string"){
+            auto temstr = llvm::ConstantDataArray::getString(context.builder.getContext(),this->str);
+            auto tempglobal = new llvm::GlobalVariable(*context.module,
+                llvm::ArrayType::get(context.builder.getInt8Ty(),this->str.size()+1),
+                false,llvm::GlobalValue::ExternalLinkage,temstr,".tempstr"
+            );
+            cout<<"getvariable: "<<(string)tempglobal->getName()<<endl;
+            auto gp = context.module->getGlobalVariable((string)tempglobal->getName());
+            llvm::Value *zero = llvm::ConstantInt::get(context.builder.getInt32Ty(),0);
+            auto r =context.builder.CreateInBoundsGEP(gp, {zero, zero});
+            return r;
         }
     }
     else if(type=="var"){
@@ -301,33 +314,35 @@ llvm::Value* ForStmt::CodeGen(CodeGenContext &context){
     context.builder.SetInsertPoint(next);
     return ret;
 }
+
 llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
     if(call->getFuncName()=="write"||call->getFuncName()=="writeln"){
         string format;
         vector<llvm::Value*>  args;
         for(auto arg: call->getParaExprListNode()->getExprList()){
             auto r = arg->CodeGen(context);
+            if(r==NULL) return NULL;
             if(r->getType()==context.builder.getInt32Ty()){
                 format += "%d";
                 args.push_back(r);
             }
             else if(r->getType()->isDoubleTy()){
-                format += "%lf";
+                format += "%.2lf";
                 args.push_back(r);
             }
             else if(r->getType()==context.builder.getInt8PtrTy()){
+                cout<<"get a ptr"<<endl;
                 format += "%s";
                 args.push_back(r);
-                throw runtime_error("String output not implement");
             }
         }
-
-        auto format_const = llvm::ConstantDataArray::getString(context.builder.getContext(),format.c_str());
+        if(call->getFuncName()=="writeln") format+="\n";
+        auto format_const = llvm::ConstantDataArray::getString(context.builder.getContext(),format);
         auto format_var = new llvm::GlobalVariable(*context.module,
-                llvm::ArrayType::get(llvm::IntegerType::get(context.builder.getContext(),8),format.size()+1),
-                false,llvm::GlobalValue::PrivateLinkage,format_const,".str"
+                llvm::ArrayType::get(context.builder.getInt8Ty(),format.size()+1),
+                false,llvm::GlobalValue::ExternalLinkage,format_const,"_tempstr"
             );
-        auto zero = llvm::Constant::getNullValue(llvm::IntegerType::getInt32Ty(context.globalcontext));
+        auto zero = llvm::ConstantInt::get(context.builder.getInt32Ty(),0);
         vector<llvm::Constant*> indices;
         indices.push_back(zero);
         indices.push_back(zero);
@@ -337,9 +352,40 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
         args.insert(args.begin(), var_ref);
         auto call = context.builder.CreateCall(context.printf_func, llvm::makeArrayRef(args), "");
         return call;
+        return NULL;
     }
     else if(call->getFuncName()=="read" || call->getFuncName()=="readln"){
+        cout<<"CallRead"<<endl;
+        string format;
+        vector<llvm::Value*> args;
+        for(auto exp :call->getParaExprListNode()->getExprList()){
+            context.genpointer = true;
+            auto r = exp->CodeGen(context);
+            context.genpointer = false;
+            if(r->getType()->getPointerElementType()==context.builder.getInt32Ty()){
+                format += "%d";
+                args.push_back(r);
+            }
+            else if(r->getType()->getPointerElementType()->isDoubleTy()){
+                format += "%lf";
+                args.push_back(r);
+            }
+            else throw std::runtime_error("Not Support Other Type");
+        }
+        auto format_const = llvm::ConstantDataArray::getString(context.builder.getContext(),format);
+        auto format_var = new llvm::GlobalVariable(*context.module,
+                llvm::ArrayType::get(context.builder.getInt8Ty(),format.size()+1),
+                false,llvm::GlobalValue::ExternalLinkage,format_const,"_tempstr"
+            );
+        auto zero = llvm::ConstantInt::get(context.builder.getInt32Ty(),0);
+        vector<llvm::Constant*> indices;
+        indices.push_back(zero);
+        indices.push_back(zero);
 
+        auto var_ref = llvm::ConstantExpr::getGetElementPtr(format_var->getValueType(), format_var,indices);
+        args.insert(args.begin(), var_ref);
+        auto call = context.builder.CreateCall(context.printf_func, llvm::makeArrayRef(args), "");
+        return call;
     }
     return NULL;
 }
@@ -506,7 +552,7 @@ llvm::Value* createGlobalArray(CodeGenContext &context, MyType* typenode,vector<
     string funcname  = context.curfunction->getName();
     for(string it:namelist){
         context.setArrayRecord(funcname+"/"+it,node->getIndexArrage().first,node->getIndexArrage().second);
-        auto r = new llvm::GlobalVariable(*context.module,initarr->getType(),false,llvm::GlobalValue::PrivateLinkage,0,it);
+        auto r = new llvm::GlobalVariable(*context.module,initarr->getType(),false,llvm::GlobalValue::ExternalLinkage,0,it);
         r->setInitializer(initarr);
         cout<<"Create GlobalArray: "+it<<endl;
     }   

@@ -89,17 +89,20 @@ int main(){
 
     //ExecPart
     StmtList* stl2 =new StmtList();
-    //assign
-    AssignStmt* as = new AssignStmt(new ArrayExpr("c",new IDExpr("Imm",2)),new IDExpr("Imm",190));
-    stl2->pushStmt(as);
-    stl2->pushStmt(new AssignStmt(new IDExpr("var",(string)"d"),new IDExpr("Imm",2.567)));
-    //for
-    StmtList* forsubst =new StmtList();
-    forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new ArrayExpr("c",new IDExpr("var",(string)"a")))));
-    ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("Imm",6),forsubst);
-    stl2->pushStmt(fo);
-    //call
-    stl2->pushStmt(new FuncCallStmt("Testout",new ExprList(new IDExpr("var", (string)"d"))));
+    stl2->pushStmt(new FuncCallStmt("read",new ExprList(new IDExpr("var", (string)"a"))));
+    stl2->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("var", (string)"a"))));
+
+    // //assign
+    // AssignStmt* as = new AssignStmt(new ArrayExpr("c",new IDExpr("Imm",2)),new IDExpr("Imm",190));
+    // stl2->pushStmt(as);
+    // stl2->pushStmt(new AssignStmt(new IDExpr("var",(string)"d"),new IDExpr("Imm",2.567)));
+    // //for
+    // StmtList* forsubst =new StmtList();
+    // forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new ArrayExpr("c",new IDExpr("var",(string)"a")))));
+    // ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("Imm",6),forsubst);
+    // stl2->pushStmt(fo);
+    // //call
+    // stl2->pushStmt(new FuncCallStmt("Testout",new ExprList(new IDExpr("var", (string)"d"))));
 
 
     ExecPart* execp = new ExecPart(stl2);

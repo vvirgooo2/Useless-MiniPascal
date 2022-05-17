@@ -147,14 +147,14 @@ private:
     string immtype; // integer, real, longint, char, bool
     string str;
     int i;
-    float f;
+    double f;
     char c;
     bool boolval;
     long longval;
 
 public:
     IDExpr(string t, int i) : Expr("idexpr"), type(t), immtype("integer"), i(i) {}
-    IDExpr(string t, float f) : Expr("idexpr"), type(t), immtype("float"), f(f) {}
+    IDExpr(string t, double f) : Expr("idexpr"), type(t), immtype("real"), f(f) {}
     IDExpr(string t, string s) : Expr("idexpr"), type(t)
     {
         if (t == "var"){
@@ -172,7 +172,7 @@ public:
     string getImmType() { return this->immtype; }
     string getVarName() { return this->varname; }
     int getIntValue() { return this->i; }
-    float getFloatValue() { return this->f; }
+    float getDoubleValue() { return this->f; }
     bool getBooleanValue() { return this->boolval; }
     char getCharValue() { return this->c; }
     int getLongIntValue() { return this->longval; }

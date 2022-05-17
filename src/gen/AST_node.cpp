@@ -132,7 +132,18 @@ llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
             return llvm::ConstantInt::get(context.builder.getInt8Ty(),this->getCharValue(),true);
         }
         else if(this->immtype=="real"){
-            return llvm::ConstantFP::get(context.module->getContext(), llvm::APFloat(this->getFloatValue()));
+            return llvm::ConstantFP::get(context.builder.getDoubleTy(), (this->getDoubleValue()));
+        }
+        else if(this->immtype=="string"){
+            auto temstr = llvm::ConstantDataArray::getString(context.builder.getContext(),this->str);
+            auto tempglobal = new llvm::GlobalVariable(*context.module,
+                llvm::ArrayType::get(context.builder.getInt8Ty(),this->str.size()+1),
+                false,llvm::GlobalValue::ExternalLinkage,temstr,".tempstr"
+            );
+            auto gp = context.module->getGlobalVariable((string)tempglobal->getName());
+            llvm::Value *zero = llvm::ConstantInt::get(context.builder.getInt32Ty(),0);
+            auto r =context.builder.CreateInBoundsGEP(gp, {zero, zero});
+            return r;
         }
         else if(this->immtype=="string"){
             auto temstr = llvm::ConstantDataArray::getString(context.builder.getContext(),this->str);
@@ -148,6 +159,7 @@ llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
         }
     }
     else if(type=="var"){
+        //char array to do
         if(context.genpointer==false) return context.builder.CreateLoad(context.getValue(this->getVarName()));
         else return context.getValue(this->getVarName());
     }

@@ -64,6 +64,8 @@ int main(){
     IDList* l1=new IDList();
     l1->pushID("c");
     vdl->pushVarDecl(new VarDecl(new ArrayType((string)"integer",1,7),l1));
+    //d : double
+    vdl->pushVarDecl(new VarDecl(new SimpleType("real"),new IDList("d")));
 
     //function DeclList
     //Head
@@ -88,14 +90,18 @@ int main(){
     //ExecPart
     StmtList* stl2 =new StmtList();
     //assign
-    AssignStmt* as = new AssignStmt(new IDExpr("var",(string)"a"),new IDExpr("Imm",190));
+    AssignStmt* as = new AssignStmt(new ArrayExpr("c",new IDExpr("Imm",2)),new IDExpr("Imm",190));
     stl2->pushStmt(as);
+    stl2->pushStmt(new AssignStmt(new IDExpr("var",(string)"d"),new IDExpr("Imm",2.567)));
     //for
     StmtList* forsubst =new StmtList();
-    forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("Imm",(string)"123"))));
-    ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("Imm",100),forsubst);
+    forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new ArrayExpr("c",new IDExpr("var",(string)"a")))));
+    ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("Imm",6),forsubst);
     stl2->pushStmt(fo);
-    //
+    //call
+    stl2->pushStmt(new FuncCallStmt("Testout",new ExprList(new IDExpr("var", (string)"d"))));
+
+
     ExecPart* execp = new ExecPart(stl2);
     Program* root = new Program(new ProgHead("test"),declp,execp);
 

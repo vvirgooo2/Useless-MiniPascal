@@ -145,18 +145,6 @@ llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
             auto r =context.builder.CreateInBoundsGEP(gp, {zero, zero});
             return r;
         }
-        else if(this->immtype=="string"){
-            auto temstr = llvm::ConstantDataArray::getString(context.builder.getContext(),this->str);
-            auto tempglobal = new llvm::GlobalVariable(*context.module,
-                llvm::ArrayType::get(context.builder.getInt8Ty(),this->str.size()+1),
-                false,llvm::GlobalValue::ExternalLinkage,temstr,".tempstr"
-            );
-            cout<<"getvariable: "<<(string)tempglobal->getName()<<endl;
-            auto gp = context.module->getGlobalVariable((string)tempglobal->getName());
-            llvm::Value *zero = llvm::ConstantInt::get(context.builder.getInt32Ty(),0);
-            auto r =context.builder.CreateInBoundsGEP(gp, {zero, zero});
-            return r;
-        }
     }
     else if(type=="var"){
         //char array to do
@@ -396,7 +384,7 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
 
         auto var_ref = llvm::ConstantExpr::getGetElementPtr(format_var->getValueType(), format_var,indices);
         args.insert(args.begin(), var_ref);
-        auto call = context.builder.CreateCall(context.printf_func, llvm::makeArrayRef(args), "");
+        auto call = context.builder.CreateCall(context.scanf_func, llvm::makeArrayRef(args), "");
         return call;
     }
     return NULL;

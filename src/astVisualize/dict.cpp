@@ -493,7 +493,7 @@ void Dict::genFrom_WhileStmt(WhileStmt *node)
 
 void Dict::genFrom_ElseStmt(ElseStmt *node)
 { // list(StmtList)
-    this->key = "WhileStmt";
+    this->key = "ElseStmt";
     this->valType = "dict";
     Dict *slDict = new Dict(node->getStmtListNode());
     addOneDictValue(slDict);
@@ -501,7 +501,7 @@ void Dict::genFrom_ElseStmt(ElseStmt *node)
 
 void Dict::genFrom_IfStmt(IfStmt *node)
 { // con(Expr) + sl(StmtList) + els(ElseStmt)
-    this->key = "WhileStmt";
+    this->key = "IfStmt";
     this->valType = "dict";
     Dict *condDict = this->genFrom_Expr(node->getConditionNode());
     Dict *slDict = new Dict(node->getStmtListNode());

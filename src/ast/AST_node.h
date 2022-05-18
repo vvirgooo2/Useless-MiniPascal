@@ -147,20 +147,24 @@ private:
     string immtype; // integer, real, longint, char, bool
     string str;
     int i;
-    float f;
+    double f;
     char c;
     bool boolval;
     long longval;
 
 public:
     IDExpr(string t, int i) : Expr("idexpr"), type(t), immtype("integer"), i(i) {}
-    IDExpr(string t, float f) : Expr("idexpr"), type(t), immtype("string"), f(f) {}
+    IDExpr(string t, double f) : Expr("idexpr"), type(t), immtype("real"), f(f) {}
     IDExpr(string t, string s) : Expr("idexpr"), type(t)
     {
-        if (t == "var")
+        if (t == "var"){
             varname = s;
-        else if (t == "Imm")
+        }
+        else if (t == "Imm"){
+            immtype = "string";
             str = s;
+        }
+            
     }
     IDExpr(string t, bool b) : Expr("idexpr"), type(t), immtype("bool"), boolval(b) {}
     IDExpr(string t, char ch) : Expr("idexpr"), type(t), immtype("char"), c(ch) {}
@@ -168,7 +172,7 @@ public:
     string getImmType() { return this->immtype; }
     string getVarName() { return this->varname; }
     int getIntValue() { return this->i; }
-    float getFloatValue() { return this->f; }
+    float getDoubleValue() { return this->f; }
     bool getBooleanValue() { return this->boolval; }
     char getCharValue() { return this->c; }
     int getLongIntValue() { return this->longval; }
@@ -413,7 +417,7 @@ public:
     VarDeclList() : BaseNode("vardecllist") {}
     void pushVarDecl(VarDecl *v) { list.push_back(v); }
     vector<VarDecl *> &getList() { return this->list; }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 //每一个decl
@@ -428,7 +432,7 @@ public:
     VarDecl(MyType *t, IDList *l) : BaseNode("vardecl"), type(t), list(l) {}
     MyType *getTypeNode() { return this->type; }
     IDList *getIDListNode() { return this->list; }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 // idlist 变量名的列表
@@ -442,14 +446,14 @@ public:
     IDList(string id) : BaseNode("idlist") { list.push_back(id); }
     void pushID(string id) { (this->list).push_back(id); }
     vector<string> &getList() { return this->list; }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 class MyType : public BaseNode
 {
 public:
     MyType(string t) : BaseNode(t) {}
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 class SimpleType : public MyType
@@ -459,7 +463,7 @@ private:
 public:
     SimpleType(string tn) : MyType("simpletype"), tyname(tn) {}
     string getSimpleTypeName() { return this->tyname; }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 class ArrayType : public MyType
@@ -469,17 +473,14 @@ private:
     int sindex; // start end，对应维度
     int eindex; // end index
 public:
-    ArrayType() : MyType("arraytype") {}
-    ArrayType(int s, int e) : MyType("arraytype"), sindex(s), eindex(e) {}
-    void SetType(string t) { tyname = t; }
-    void Setindex(int s, int e)
-    {
-        sindex = s;
-        eindex = e;
-    }
+    ArrayType():MyType("arraytype"){ }
+    ArrayType(int s, int e):MyType("arraytype"),sindex(s),eindex(e){ }
+    ArrayType(string name,int s, int e):MyType("arraytype"),tyname(name),sindex(s),eindex(e){ }
+    void SetType(string t){ tyname = t; }
+    void Setindex(int s, int e){ sindex=s; eindex=e; }
     string getTypeName() { return tyname; }
     pair<int, int> getIndexArrage() { return make_pair(sindex, eindex); }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };
 
 //参数表
@@ -492,5 +493,5 @@ public:
     ParaList() : BaseNode("paralist") {}
     void pushNewPara(VarDecl *v) { pa.push_back(v); }
     vector<VarDecl *> getParaList() { return this->pa; }
-    // llvm::Value *CodeGen(CodeGenContext &context);
+    llvm::Value *CodeGen(CodeGenContext &context);
 };

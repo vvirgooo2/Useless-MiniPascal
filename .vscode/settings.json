@@ -53,5 +53,7 @@
         "stdexcept": "cpp",
         "streambuf": "cpp",
         "thread": "cpp"
-    }
+    },
+    "C_Cpp.errorSquiggles": "Enabled",
+    "C_Cpp.experimentalFeatures": "Enabled"
 }

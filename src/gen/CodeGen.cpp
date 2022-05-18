@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 using namespace std;
-llvm::Function *CodeGenContext::regisprintf(){
+void CodeGenContext::regis(){
     vector<llvm::Type *> argtypes;
     argtypes.push_back(llvm::Type::getInt8PtrTy(this->globalcontext));
     llvm::FunctionType *wtype  = llvm::FunctionType::get(llvm::Type::getInt32Ty(globalcontext),argtypes,true);
@@ -14,8 +14,16 @@ llvm::Function *CodeGenContext::regisprintf(){
         this->module
     );
     func->setCallingConv(llvm::CallingConv::C);
-    return func;
-}
+    this->printf_func = func;
+
+    llvm::Function* funcd = llvm::Function::Create(
+        wtype,llvm::Function::ExternalLinkage,
+        llvm::Twine("scanf"),
+        this->module
+    );
+    funcd->setCallingConv(llvm::CallingConv::C);
+    this->scanf_func = funcd;
+}   
 
 void CodeGenContext::generate(BaseNode* root){
     Program* r = (Program*) root;
@@ -34,11 +42,9 @@ void CodeGenContext::generate(BaseNode* root){
     this->builder.SetInsertPoint(block); //reset insert point
     cout<<"Global Exec:"<<endl;
     r->getExecPartNode()->CodeGen(*this);
+  
     this->builder.CreateRet(this->builder.getInt32(0));
-    int fd = open("result.ll", O_CREAT | O_WRONLY, 0644);
-    dup2(fd, 1);
-    close(fd);
-    this->module->print(llvm::outs(),nullptr);
+    
 
 }
 
@@ -57,14 +63,16 @@ int main(){
     //c: string
     IDList* l1=new IDList();
     l1->pushID("c");
-    vdl->pushVarDecl(new VarDecl(new SimpleType("integer"),l1));
+    vdl->pushVarDecl(new VarDecl(new ArrayType((string)"integer",1,7),l1));
+    //d : double
+    vdl->pushVarDecl(new VarDecl(new SimpleType("real"),new IDList("d")));
 
     //function DeclList
     //Head
     FuncDeclList* funclist=new FuncDeclList();
     ParaList* pal =new ParaList();
-    pal->pushNewPara(new VarDecl(new SimpleType("integer"),new IDList("in")));
-    FuncHead* fd=new FuncHead("Testout",new SimpleType("integer"),pal); 
+    pal->pushNewPara(new VarDecl(new SimpleType("real"),new IDList("in")));
+    FuncHead* fd=new FuncHead("Testout",new SimpleType("real"),pal); 
     //Body
     DeclPart* d1 =new DeclPart(new VarDeclList(),new FuncDeclList());
     StmtList* Stl=new StmtList();
@@ -81,21 +89,34 @@ int main(){
 
     //ExecPart
     StmtList* stl2 =new StmtList();
-    //assign
-    AssignStmt* as = new AssignStmt(new IDExpr("var",(string)"c"),new IDExpr("Imm",190));
-    stl2->pushStmt(as);
-    //for
-    StmtList* forsubst =new StmtList();
-    forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("var",(string)"a"))));
-    ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("var",(string)"c"),forsubst);
-    stl2->pushStmt(fo);
-    //
+    stl2->pushStmt(new FuncCallStmt("read",new ExprList(new IDExpr("var", (string)"a"))));
+    stl2->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("var", (string)"a"))));
+
+    // //assign
+    // AssignStmt* as = new AssignStmt(new ArrayExpr("c",new IDExpr("Imm",2)),new IDExpr("Imm",190));
+    // stl2->pushStmt(as);
+    // stl2->pushStmt(new AssignStmt(new IDExpr("var",(string)"d"),new IDExpr("Imm",2.567)));
+    // //for
+    // StmtList* forsubst =new StmtList();
+    // forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new ArrayExpr("c",new IDExpr("var",(string)"a")))));
+    // ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("Imm",6),forsubst);
+    // stl2->pushStmt(fo);
+    // //call
+    // stl2->pushStmt(new FuncCallStmt("Testout",new ExprList(new IDExpr("var", (string)"d"))));
+
+
     ExecPart* execp = new ExecPart(stl2);
     Program* root = new Program(new ProgHead("test"),declp,execp);
 
     CodeGenContext* context = new CodeGenContext();
     try{
         context->generate(root);
+        
+        int fd = open("result.ll", O_CREAT | O_WRONLY, 0644);
+        dup2(fd, 1);
+        close(fd);
+          
+        context->module->print(llvm::outs(),nullptr);
     }
     catch (std::runtime_error &error){
         cout << "[Error] " << error.what() << endl;

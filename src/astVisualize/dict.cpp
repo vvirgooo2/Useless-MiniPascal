@@ -158,7 +158,8 @@ Dict::Dict(BaseNode *root)
     else if (nodeType == "elsestmt")
     {
         ElseStmt *node = (ElseStmt *)root;
-        genFrom_ElseStmt(node);
+        if (node->getStmtListNode() != NULL)
+            genFrom_ElseStmt(node);
     }
     else if (nodeType == "ifstmt")
     {
@@ -286,7 +287,7 @@ void Dict::genFrom_ArrayType(ArrayType *node)
     this->valType = "str";
     int start = node->getIndexArrage().first;
     int end = node->getIndexArrage().first;
-    string str = "array[" + to_string(start) + ".." + to_string(end) + "] of" + node->getTypeName();
+    string str = "array[" + to_string(start) + ".." + to_string(end) + "] of " + node->getTypeName();
     this->strValue = str;
 }
 

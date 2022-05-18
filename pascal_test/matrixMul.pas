@@ -1,15 +1,16 @@
 program matrixMul;
 var
-    a, b, result : array [0 .. 25, 0 .. 25] of longint; // 矩阵变量
+    a, b, result : array [0 .. 125] of longint; // 矩阵变量
     rowA, rowB, columnA, columnB: longint; // 矩阵A/B的行列数
-    i, j, k, temp : integer;
+    i, j, k, idx1, idx2, idx3 : integer;
 begin
     read(rowA, columnA); // 输入A的矩阵
     for i := 0 to rowA - 1 do
     begin
         for j := 0 to columnA - 1 do
         begin
-            read(a[i, j]);
+            idx1 := i * columnA + j;
+            read(a[idx1]);
         end;
     end;
 
@@ -18,7 +19,8 @@ begin
     begin
         for j := 0 to columnB - 1 do
         begin
-            read(b[i, j]);
+            idx1 := i * columnB + j;
+            read(b[idx1]);
         end;
     end;
 
@@ -30,10 +32,13 @@ begin
         begin
             for j := 0 to columnB - 1 do
             begin
-                result[i, j] := 0;
+                idx1 := i * columnB + j;
+                result[idx1] := 0;
                 for k := 0 to rowB - 1 do
                 begin
-                    result[i, j] := result[i, j] + (a[i, k] * b[k, j]);
+                    idx2 := i * columnA + k;
+                    idx3 := k * columnB + j;
+                    result[idx1] := result[idx1] + (a[idx2] * b[idx3]);
                 end;
             end;
         end;
@@ -43,7 +48,8 @@ begin
         begin
             for j := 0 to columnB - 1 do
             begin
-                write(result[i, j]: 10)
+                idx1 := i * columnB + j;
+                write(result[idx1]: 10);
             end;
             writeln(); // 换行
         end;

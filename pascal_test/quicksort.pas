@@ -1,18 +1,17 @@
 program quicksort;
 var
-    n,k:longint;
+    n,k:integer;
     a:array[1..10002] of integer;
-procedure qsort(l,r:longint);
-var
-    i,j,m,t:longint;
+    i,j,m,t:integer;
+function qsort(l,r:integer):integer;
 begin
     i:=l;
     j:=r;
-    m:=a[(l+r)div 2];
+    m:=a[(l+r) div 2];
     repeat
-        while a[i]<m do i:=i+1;
-        while a[j]>m do j:=j-1;
-        if not(i>j) then
+        while (a[i]<m) do i:=i+1;
+        while (a[j]>m) do j:=j-1;
+        if( not(i>j)) then
         begin
         t:=a[i];
         a[i]:=a[j];
@@ -21,14 +20,15 @@ begin
         j:=j-1;
         end;
     until i>j;
-    if l<j then qsort(l,j);
-    if i<r then qsort(i,r);
+    if (l<j) then qsort(l,j);
+    if (i<r) then qsort(i,r);
 end;
 begin
     read(n);
     for k:=1 to n do
         read(a[k]);
     qsort(1,n);
-    for k:=1 to n do
+    for k:=1 to n do begin
         writeln(a[k]);
+    end;
 end.

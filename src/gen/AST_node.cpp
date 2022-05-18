@@ -5,6 +5,7 @@ llvm::Value* BinExpr::CodeGen(CodeGenContext &context){
     cout<<"Generating BinExpr..."<<endl;
     llvm::Value *L = lhs->CodeGen(context);
     llvm::Value *R = rhs->CodeGen(context);
+    if(L==NULL||R==NULL) throw runtime_error("NULL");
 
     if(L->getType()->isDoubleTy() || R->getType()->isDoubleTy()){
         if(!L->getType()->isDoubleTy()){
@@ -33,7 +34,7 @@ llvm::Value* BinExpr::CodeGen(CodeGenContext &context){
             return context.builder.CreateFCmpUGE(L,R,"ge_cmp");
         else if(op=="EQUAL")
             return context.builder.CreateFCmpUEQ(L,R,"eq_cmp");
-        else if(op=="UNEQUAL")
+        else if(op=="NE")
             return context.builder.CreateFCmpUNE(L,R,"ne_cmp");
         else
             throw std::runtime_error("Unknown F operation");
@@ -41,16 +42,25 @@ llvm::Value* BinExpr::CodeGen(CodeGenContext &context){
     /* GE, GT, LE, LT, EQUAL, UNEQUAL,
                 PLUS, MINUS, OR, MUL, 
                 DIV, MOD, AND*/
-    if(op == "PLUS") 
-        return context.builder.CreateAdd(L,R,"add");
+
+    if(op == "PLUS"){
+        auto r= context.builder.CreateAdd(L,R,"add");
+        return r;
+    } 
+        
     else if(op=="MINUS") 
         return context.builder.CreateSub(L,R,"sub");
     else if(op=="MUL") 
         return context.builder.CreateMul(L,R,"mul");
     else if(op=="MOD")
         return context.builder.CreateSRem(L,R,"mod");
-    else if(op=="DIV")
-        return context.builder.CreateSDiv(L,R,"div");
+    else if(op=="DIV"){
+        auto r= context.builder.CreateSDiv(L,R,"div");
+        
+        
+        return r;
+    }
+        
     else if(op=="LT")
         return context.builder.CreateICmpSLT(L,R,"lt_cmp");
     else if(op=="GT")
@@ -76,9 +86,11 @@ llvm::Value* BinExpr::CodeGen(CodeGenContext &context){
 }
 
 llvm::Value* UnaryExpr::CodeGen(CodeGenContext &context){
+    cout<<"Generating Unary"<<endl;
     if(op == "NOT")
         return context.builder.CreateNot(this->getExprNode()->CodeGen(context));
-    else 
+    else if(op == "NOT")
+        return context.builder.CreateNot(this->getExprNode()->CodeGen(context));
         throw std::runtime_error("Unknown Unary operation");
     return NULL;
 }
@@ -102,9 +114,10 @@ llvm::Value* ArrayExpr::CodeGen(CodeGenContext &context){
     context.genpointer=false;
     auto index = this->getIndexExprNode()->CodeGen(context);
     context.genpointer=ptr;
+    cout<<"Got Index"<<endl;
     auto arrptr = context.getValue(this->getArrayName());
     string funcname = context.curfunction->getName();
-    string name  = funcname+"/"+this->getArrayName();
+    string name  = this->getArrayName();
     int start = context.getArrayRecord(name).first;
     auto sr = context.builder.getInt32(start);
     auto trueindex = context.builder.CreateBinOp(llvm::Instruction::Sub,index,sr);
@@ -123,6 +136,7 @@ llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
             return llvm::ConstantInt::get(context.builder.getInt1Ty(),this->getBooleanValue(),true);
         }
         else if(this->immtype=="integer"){
+            cout<<"Got integer value "<<this->getIntValue()<<endl;
             return llvm::ConstantInt::get(context.builder.getInt32Ty(),this->getIntValue(),true);
         }
         else if(this->immtype=="longint"){
@@ -145,12 +159,14 @@ llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
             auto r =context.builder.CreateInBoundsGEP(gp, {zero, zero});
             return r;
         }
+        else throw std::runtime_error("Unknown constant");
     }
     else if(type=="var"){
         //char array to do
         if(context.genpointer==false) return context.builder.CreateLoad(context.getValue(this->getVarName()));
         else return context.getValue(this->getVarName());
     }
+    else throw runtime_error("Unknown type for IDEXPR");
     return NULL;
 }
 
@@ -288,7 +304,8 @@ llvm::Value* ForStmt::CodeGen(CodeGenContext &context){
     auto loopvar =new IDExpr("var",(string)this->var); 
     auto init_assign = new AssignStmt(loopvar,this->getStartExprNode());
     init_assign->CodeGen(context);
-    context.builder.CreateBr(body);
+    auto testGT = new BinExpr("GT",loopvar,this->endexpr);
+    context.builder.CreateCondBr(testGT->CodeGen(context),next,body);
 
     context.builder.SetInsertPoint(body);
     context.pushBlock(body,next);
@@ -316,14 +333,15 @@ llvm::Value* ForStmt::CodeGen(CodeGenContext &context){
 }
 
 llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
-    if(call->getFuncName()=="write"||call->getFuncName()=="writeln"){
+    if(call->getFuncName()=="write"||call->getFuncName()=="writeln"||call->getFuncName()=="write10d"){
         string format;
         vector<llvm::Value*>  args;
         for(auto arg: call->getParaExprListNode()->getExprList()){
             auto r = arg->CodeGen(context);
             if(r==NULL) return NULL;
             if(r->getType()==context.builder.getInt32Ty()){
-                format += "%d";
+                if(call->getFuncName()=="write10d") format += "%10d";
+                else format += "%d";
                 args.push_back(r);
             }
             else if(r->getType()->isDoubleTy()){
@@ -393,7 +411,7 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
 
 llvm::Value* FuncCallStmt::CodeGen(CodeGenContext &context){
     cout<<"Generating FuncCallStmt..."<<endl;
-    if(this->getFuncName()=="write"||this->getFuncName()=="writeln"){
+    if(this->getFuncName()=="write"||this->getFuncName()=="writeln"|| this->getFuncName()=="write10d"){
         return SysCall(this,context);
     }
     else if(this->getFuncName()=="read"||this->getFuncName()=="readln"){
@@ -420,9 +438,12 @@ llvm::Value* RepeatStmt::CodeGen(CodeGenContext &context){
     context.popBLock();
 
     context.builder.SetInsertPoint(end);
+
     auto test = this->getConditionExprNode()->CodeGen(context);
+
     auto ret = context.builder.CreateCondBr(test,next,body);
 
+    context.builder.SetInsertPoint(next);
     //next replace top block
     auto oldtop = context.getTopBlock();
     auto nextBlock = new CodeGenBlock();
@@ -465,7 +486,8 @@ llvm::Value* WhileStmt::CodeGen(CodeGenContext &context){
 }
 
 llvm::Value* ElseStmt::CodeGen(CodeGenContext &context){
-    return this->getStmtListNode()->CodeGen(context);
+    if(this->getStmtListNode()!=NULL)
+        return this->getStmtListNode()->CodeGen(context);
 }
 
 llvm::Value* IfStmt::CodeGen(CodeGenContext &context){
@@ -483,6 +505,7 @@ llvm::Value* IfStmt::CodeGen(CodeGenContext &context){
     
     context.builder.SetInsertPoint(bfalse);
     if(this->getElseStmtNode()!=NULL){
+        cout<<"Generate Else"<<endl;
         this->getElseStmtNode()->CodeGen(context);
     }
     context.builder.CreateBr(next);
@@ -528,7 +551,7 @@ llvm::Value* createArray(CodeGenContext &context, MyType* typenode,vector<string
     string funcname  = context.curfunction->getName();
     for(string it:namelist){
         context.builder.CreateAlloca(llvm::ArrayType::get(simpletype,len),NULL,it);
-        context.setArrayRecord(funcname+"/"+it,node->getIndexArrage().first,node->getIndexArrage().second);
+        context.setArrayRecord(it,node->getIndexArrage().first,node->getIndexArrage().second);
     }
     return NULL;
 }
@@ -551,7 +574,7 @@ llvm::Value* createGlobalArray(CodeGenContext &context, MyType* typenode,vector<
     llvm::Constant* initarr = llvm::ConstantArray::get(llvm::ArrayType::get(simpletype,len),initv);
     string funcname  = context.curfunction->getName();
     for(string it:namelist){
-        context.setArrayRecord(funcname+"/"+it,node->getIndexArrage().first,node->getIndexArrage().second);
+        context.setArrayRecord(it,node->getIndexArrage().first,node->getIndexArrage().second);
         auto r = new llvm::GlobalVariable(*context.module,initarr->getType(),false,llvm::GlobalValue::ExternalLinkage,0,it);
         r->setInitializer(initarr);
         cout<<"Create GlobalArray: "+it<<endl;

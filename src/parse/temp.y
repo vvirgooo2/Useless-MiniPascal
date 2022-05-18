@@ -1,8 +1,11 @@
+%define parse.error verbose
 %{
     #include <stdio.h>
     #include <string.h>
     #include "../ast/AST_node.h"
+    #include "main.h"
     extern int yylex();
+    extern FILE* yyin;
     void yyerror(const char* s);
 %}
 
@@ -35,6 +38,7 @@
     VarDeclList* var_list;
     VarDecl* var_node;
     MyType* type_node;
+    SimpleType* simple_type;
     IDList* id_list;
     ArrayType* array_type;
     ParaList* para_node;
@@ -43,13 +47,13 @@
     UnaryExpr* un_expr;
     FunCallExpr* funcall_expr;
     ArrayExpr* array_expr;
-%}
+}
 // 数据类型定义
 %token TYPE_INT TYPE_INT_8 TYPE_INT_16 TYPE TYPE_INT_32 TYPE_INT_64 TYPE_BYTE TYPE_WORD TYPE_FLOAT_8 TYPE_FLOAT_16 TYPE_FLOAT_32 TYPE_BOOL TYPE_CHAR TYPE_STRING
 // 符号
-%token NOT ADD SUB MUL DIV MOD IDIV EQ GRE LES GREQ LESQ NE OR AND ASSIGN ARANGE LBR RBR LPR RPR PERIOD COM COL SEMI CARET DOT TRUE FALSE
+%token NOT ADD SUB MUL DIV MOD IDIV EQ GRE LES GREQ LESQ NE OR AND ASSIGN ARANGE LBR RBR LPR RPR DOT COM COL SEMI CARET
 // 其他保留字
-%token ARRAY BEGN BREAK CASE CONST TO DO ELSE END FOR FUNC IF OF PROC PROG REPEAT READ READLN THEN UNTIL VAR WHILE WRITE WRITELN
+%token ARRAY BEGN BREAK CASE CONST TO DO ELSE END FOR FUNC IF OF PROC PROG REPEAT THEN UNTIL VAR WHILE
 // 数据常量
 %token<type_int> INT 
 %token<type_float> FLOAT 
@@ -78,9 +82,8 @@
 %type<break_node> break_node;
 %type<var_list> var_list;
 %type<var_node> var_node;
-%type<type_node> type_node;
+%type<simple_type> simple_type;
 %type<id_list> id_list;
-%type<array_type> array_type;
 %type<para_node> para_node;
 %type<prog_head> prog_head;
 %type<expr_node> first_bin_expr;
@@ -96,7 +99,7 @@ program:
 
 program_node:
     prog_head decl_part exec_part DOT { 
-        ast_root = Program($1, $2, $3); 
+        ast_root = new Program($1, $2, $3); 
     }
 ;
 
@@ -108,6 +111,8 @@ decl_part:
     VAR var_list func_list { 
         $$ = new DeclPart($2, $3); 
     }
+    |
+    { $$ = new DeclPart(); }
 ;
 
 var_list:
@@ -115,52 +120,47 @@ var_list:
 { $$ = $1;
   $$->pushVarDecl($2); }
     | 
-{ $$ = new VarList(); }
+{ $$ = new VarDeclList(); }
 ;
 
 var_node:
-    id_list COL type_node
-{ $$ = new VarDecl($3, $1); }
-    | id_list COL ARRAY array_type OF type_node
-{ $4->SetType($6);
-  $$ = new VarDecl($4, $1); }
+    id_list COL simple_type{
+        $$ = new VarDecl($3, $1); 
+    }
+    | id_list COL ARRAY LBR INT ARANGE INT RBR OF simple_type{
+        ArrayType* ary = new ArrayType($5, $7, $10->getSimpleTypeName()); 
+        $$ = new VarDecl(ary, $1);
+    }
 ;
 
-array_type:
-    array_type LBR INT ARANGE INT RBR
-{ $$ = $1; 
-  $$->pushNewDim($3, $5); }
-    | 
-{ $$ = new ArrayType(); }
-;
-
-type_node:
+simple_type:
     TYPE_INT
-{ $$ = new MyType("integer"); }
+{ $$ = new SimpleType("integer"); }
     | TYPE_FLOAT_8
-{ $$ = new MyType("real"); }
+{ $$ = new SimpleType("real"); }
     | TYPE_FLOAT_32
-{ $$ = new MyType("double"); }
+{ $$ = new SimpleType("double"); }
     | TYPE_CHAR
-{ $$ = new MyType("char"); }
+{ $$ = new SimpleType("char"); }
     | TYPE_STRING
-{ $$ = new MyType("string"); }
+{ $$ = new SimpleType("string"); }
 ;
 
 id_list:
     id_list COM ID
 { $$ = $1;
-  $$->pushID($3); }
+  $$->pushID((string)$3); }
     | ID
-{ $$ = new id_list; 
-  $$->pushID($1); }
+{ $$ = new IDList(); 
+  $$->pushID((string)$1); }
 ;
 
 func_list:
     func_list func_node
-{ $$ = $1->pushOneFuncDecl($2); }
+{ $$ = $1;
+  $$->pushOneFuncDecl($2); }
     | 
-{ $$ = new FunCDeclList(); }
+{ $$ = new FuncDeclList(); }
 ;
 
 func_node:
@@ -169,36 +169,38 @@ func_node:
 ;
 
 func_head:
-    FUNC ID LPR para_node RPR COL type_node SEMI { 
-        $$ = new FuncHead($2, $7, $4); 
+    FUNC ID LPR para_node RPR COL simple_type { 
+        $$ = new FuncHead((string)$2, $7, $4); 
     }
 ;
 
 para_node:
     para_node COM var_node
-{ $$ = $1->pushPara($3); }
-    | 
-{ $$ = para_node(); }
+{ $$ = $1;
+  $$->pushNewPara($3); }
+    | var_node
+{ $$ = new ParaList($1); }
 ;
 
 func_body:
-    VAR {
-        //$$ = new FuncBody($1, $2); 
+    var_list exec_part {
+        $$ = new FuncBody($1, $2); 
     }
 ;
 
 exec_part:
-    BEGN stmt_node END { 
+    BEGN stmt_list END { 
         $$ = new ExecPart($2);
     }
 ;
 
 stmt_list:
-    stmt_list stmt_node
-{ $$ = $1
-  $$->pushStmt($2); }
-    | 
-{ $$ = new StmtList(); }
+    stmt_list stmt_node { 
+        $$ = $1;
+        $$->pushStmt($2); 
+    }
+    | stmt_node
+{ $$ = new StmtList($1); }
 ;
 
 stmt_node:
@@ -219,10 +221,10 @@ stmt_node:
 ;
 
 assign_node:
-    ID ASSIGN expr_node
-{ IDExpr* id = new IDExpr("var", $1); 
+    ID ASSIGN expr_node SEMI
+{ IDExpr* id = new IDExpr("var", (string)$1); 
   $$ = new AssignStmt(id, $3); }
-    | array_expr ASSIGN expr_node
+    | array_expr ASSIGN expr_node SEMI
 { $$ = new AssignStmt($1, $3); }
 ;
 
@@ -236,7 +238,7 @@ expr_list:
 
 id_expr:
     ID
-{ $$ = new IDExpr("var", $1); }
+{ $$ = new IDExpr("var", (string)$1); }
     | INT
 { $$ = new IDExpr("int", $1); }
     | CHAR
@@ -296,10 +298,9 @@ third_bin_expr:
     | SUB third_bin_expr
 { $$ = new UnaryExpr("sub", $2); }
     | ID LPR expr_list RPR
-{ $$ = new FunCallExpr($1, $3); }
-    | ID array_expr
-{ $$ = $2;
-  $$->SetName($1); }
+{ $$ = new FunCallExpr((string)$1, $3); }
+    | array_expr
+{ $$ = $1; }
     | LPR expr_node RPR
 { $$ = $2; }
     | id_expr
@@ -307,59 +308,65 @@ third_bin_expr:
 ;
 
 array_expr:
-    array_expr LBR expr_node RBR
-{ $$ = $1; 
-  $$->pushIndexDim($3); }
-    | 
-{ $$ = new ArrayExpr(); }
+    ID LBR expr_node RBR {
+        $$ = new ArrayExpr((string)$1, $3);
+    }
 ;
 
 for_node:
-    FOR ID ASSIGN expr_node TO expr_node DO exec_part SEMI
-{ $$ = new ForStmt($2, $4, $6, $8->sl); }
+    FOR ID ASSIGN expr_node TO expr_node DO exec_part SEMI {
+        $$ = new ForStmt((string)$2, $4, $6, $8->sl); 
+    }
+    | FOR ID ASSIGN expr_node TO expr_node DO stmt_node {
+        StmtList* sl = new StmtList($8);
+        $$ = new ForStmt((string)$2, $4, $6, sl);
+    }
 ;
 
 while_node:
-    WHILE expr_node DO exec_part SEMI
-{ $$ = new WhileStmt($2, $4->sl); }
+    WHILE expr_node DO exec_part SEMI{
+        $$ = new WhileStmt($2, $4->sl); 
+    }
+    | WHILE expr_node DO stmt_node {
+        StmtList* sl = new StmtList($4);
+        $$ = new WhileStmt($2, sl);
+    }
 ;
 
 if_node:
-    IF LPR expr_node RPR THEN exec_part else_node
-{ $$ = new IfStmt($3, $6->sl, $7); }
+    IF LPR expr_node RPR THEN exec_part SEMI else_node
+{ $$ = new IfStmt($3, $6->sl, $8); }
     | IF LPR expr_node RPR THEN stmt_node else_node
 { StmtList* sl = new StmtList();
-  sl.pushStmt($6);
+  sl->pushStmt($6);
   $$ = new IfStmt($3, sl, $7); }
 ;
 
 else_node:
-    ELSE exec_part
+    ELSE exec_part SEMI
 { $$ = new ElseStmt($2->sl); }
     | 
 { $$ = new ElseStmt(); }
 ;
 
 break_node:
-    BREAK
+    BREAK SEMI
 { $$ = new BreakStmt(); }
 ;
 
 call_node:
-    ID LPR expr_list RPR
-{ $$ = new FunCallExpr($1, $3); }
+    ID LPR expr_list RPR SEMI
+{ $$ = new FuncCallStmt((string)$1, $3); }
 ;
 
 repeat_node:
-    REPEAT stmt_list UNTIL expr_node SEMI { 
+    REPEAT stmt_list UNTIL expr_node SEMI{ 
         $$ = new RepeatStmt($4, $2); 
     }
 ;
 
 %%
-int main() {
-    /* char[] filename = "quicksort.pas";
-    yyin = fopen(filename, "r"); */
-    yyparse();
-    return 0;
-}
+void yyerror (char const *s) {
+   printf ("%s\n", s);
+   
+ }

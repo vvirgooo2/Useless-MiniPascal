@@ -1,6 +1,6 @@
-make --dry-run --always-make --keep-going --print-directory
-make: Entering directory '/mnt/c/Users/Corgi/Documents/GitHub/Pascal-Complier'
-make: Leaving directory '/mnt/c/Users/Corgi/Documents/GitHub/Pascal-Complier'
+make.exe --dry-run --always-make --keep-going --print-directory
+make.exe: Entering directory `d:/ytm/whome/Pascal-Complier'
+make.exe: Leaving directory `d:/ytm/whome/Pascal-Complier'
  
-make: *** No targets specified and no makefile found.  Stop.
+make.exe: *** No targets specified and no makefile found.  Stop.
 

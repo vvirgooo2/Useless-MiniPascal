@@ -158,7 +158,7 @@ Dict::Dict(BaseNode *root)
     else if (nodeType == "elsestmt")
     {
         ElseStmt *node = (ElseStmt *)root;
-        if (node->getStmtListNode() != NULL)
+        if(node->getStmtListNode() != NULL)
             genFrom_ElseStmt(node);
     }
     else if (nodeType == "ifstmt")
@@ -287,7 +287,7 @@ void Dict::genFrom_ArrayType(ArrayType *node)
     this->valType = "str";
     int start = node->getIndexArrage().first;
     int end = node->getIndexArrage().first;
-    string str = "array[" + to_string(start) + ".." + to_string(end) + "] of " + node->getTypeName();
+    string str = "array[" + to_string(start) + ".." + to_string(end) + "] of" + node->getTypeName();
     this->strValue = str;
 }
 
@@ -599,12 +599,9 @@ void Dict::genFrom_ArrayExpr(ArrayExpr *node)
     this->valType = "dict";
     Dict *arrayNameDict = new Dict("ArrayName", node->getArrayName());
     addOneDictValue(arrayNameDict);
-    vector<Expr *> index_list = node->getIndexExprList();
-    for (int i = 0; i < index_list.size(); i++)
-    {
-        Dict *exprDict = this->genFrom_Expr(index_list[i]);
-        addOneDictValue(exprDict);
-    }
+    Expr * index = node->getIndexExprNode();
+    Dict *exprDict = this->genFrom_Expr(index);
+    addOneDictValue(exprDict);
 }
 
 void Dict::genFrom_IDExpr(IDExpr *node)

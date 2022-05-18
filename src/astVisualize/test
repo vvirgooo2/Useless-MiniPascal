@@ -1,0 +1,631 @@
+digraph G {
+	0 [label=Program]
+	1 [label=ProgHead]
+	0 -> 1
+	2 [label=quicksort]
+	1 -> 2
+	3 [label=DeclPart]
+	0 -> 3
+	4 [label=VarDeclList]
+	3 -> 4
+	5 [label=VarDecl]
+	4 -> 5
+	6 [label=SimpleType]
+	5 -> 6
+	7 [label=integer]
+	6 -> 7
+	8 [label=IDList]
+	5 -> 8
+	9 [label="n,k"]
+	8 -> 9
+	10 [label=VarDecl]
+	4 -> 10
+	11 [label=ArrayType]
+	10 -> 11
+	12 [label="array[1..1] ofinteger"]
+	11 -> 12
+	13 [label=IDList]
+	10 -> 13
+	14 [label=a]
+	13 -> 14
+	15 [label=VarDecl]
+	4 -> 15
+	16 [label=SimpleType]
+	15 -> 16
+	17 [label=integer]
+	16 -> 17
+	18 [label=IDList]
+	15 -> 18
+	19 [label="i,j,m,t"]
+	18 -> 19
+	20 [label=FuncDeclList]
+	3 -> 20
+	21 [label=OneFuncDecl]
+	20 -> 21
+	22 [label=FuncHead]
+	21 -> 22
+	23 [label=FuncName]
+	22 -> 23
+	24 [label=qsort]
+	23 -> 24
+	25 [label=SimpleType]
+	22 -> 25
+	26 [label=integer]
+	25 -> 26
+	27 [label=ParaList]
+	22 -> 27
+	28 [label=VarDecl]
+	27 -> 28
+	29 [label=SimpleType]
+	28 -> 29
+	30 [label=integer]
+	29 -> 30
+	31 [label=IDList]
+	28 -> 31
+	32 [label="l,r"]
+	31 -> 32
+	33 [label=FuncBody]
+	21 -> 33
+	34 [label=VarDeclList]
+	33 -> 34
+	35 [label=ExecPart]
+	33 -> 35
+	36 [label=StmtList]
+	35 -> 36
+	37 [label=AssignStmt]
+	36 -> 37
+	38 [label=IDExpr]
+	37 -> 38
+	39 [label=VarName]
+	38 -> 39
+	40 [label=i]
+	39 -> 40
+	41 [label=IDExpr]
+	37 -> 41
+	42 [label=VarName]
+	41 -> 42
+	43 [label=l]
+	42 -> 43
+	44 [label=AssignStmt]
+	36 -> 44
+	45 [label=IDExpr]
+	44 -> 45
+	46 [label=VarName]
+	45 -> 46
+	47 [label=j]
+	46 -> 47
+	48 [label=IDExpr]
+	44 -> 48
+	49 [label=VarName]
+	48 -> 49
+	50 [label=r]
+	49 -> 50
+	51 [label=AssignStmt]
+	36 -> 51
+	52 [label=IDExpr]
+	51 -> 52
+	53 [label=VarName]
+	52 -> 53
+	54 [label=m]
+	53 -> 54
+	55 [label=ArrayExpr]
+	51 -> 55
+	56 [label=ArrayName]
+	55 -> 56
+	57 [label=a]
+	56 -> 57
+	58 [label=BinExpr]
+	55 -> 58
+	59 [label=BinExpr]
+	58 -> 59
+	60 [label=IDExpr]
+	59 -> 60
+	61 [label=VarName]
+	60 -> 61
+	62 [label=l]
+	61 -> 62
+	63 [label=op]
+	59 -> 63
+	64 [label=add]
+	63 -> 64
+	65 [label=IDExpr]
+	59 -> 65
+	66 [label=VarName]
+	65 -> 66
+	67 [label=r]
+	66 -> 67
+	68 [label=op]
+	58 -> 68
+	69 [label=idiv]
+	68 -> 69
+	70 [label=IDExpr]
+	58 -> 70
+	71 [label=IntValue]
+	70 -> 71
+	72 [label=2]
+	71 -> 72
+	73 [label=RepeatStmt]
+	36 -> 73
+	74 [label=BinExpr]
+	73 -> 74
+	75 [label=IDExpr]
+	74 -> 75
+	76 [label=VarName]
+	75 -> 76
+	77 [label=i]
+	76 -> 77
+	78 [label=op]
+	74 -> 78
+	79 [label=GRE]
+	78 -> 79
+	80 [label=IDExpr]
+	74 -> 80
+	81 [label=VarName]
+	80 -> 81
+	82 [label=j]
+	81 -> 82
+	83 [label=StmtList]
+	73 -> 83
+	84 [label=WhileStmt]
+	83 -> 84
+	85 [label=BinExpr]
+	84 -> 85
+	86 [label=ArrayExpr]
+	85 -> 86
+	87 [label=ArrayName]
+	86 -> 87
+	88 [label=a]
+	87 -> 88
+	89 [label=IDExpr]
+	86 -> 89
+	90 [label=VarName]
+	89 -> 90
+	91 [label=i]
+	90 -> 91
+	92 [label=op]
+	85 -> 92
+	93 [label=LES]
+	92 -> 93
+	94 [label=IDExpr]
+	85 -> 94
+	95 [label=VarName]
+	94 -> 95
+	96 [label=m]
+	95 -> 96
+	97 [label=StmtList]
+	84 -> 97
+	98 [label=AssignStmt]
+	97 -> 98
+	99 [label=IDExpr]
+	98 -> 99
+	100 [label=VarName]
+	99 -> 100
+	101 [label=i]
+	100 -> 101
+	102 [label=BinExpr]
+	98 -> 102
+	103 [label=IDExpr]
+	102 -> 103
+	104 [label=VarName]
+	103 -> 104
+	105 [label=i]
+	104 -> 105
+	106 [label=op]
+	102 -> 106
+	107 [label=add]
+	106 -> 107
+	108 [label=IDExpr]
+	102 -> 108
+	109 [label=IntValue]
+	108 -> 109
+	110 [label=1]
+	109 -> 110
+	111 [label=WhileStmt]
+	83 -> 111
+	112 [label=BinExpr]
+	111 -> 112
+	113 [label=ArrayExpr]
+	112 -> 113
+	114 [label=ArrayName]
+	113 -> 114
+	115 [label=a]
+	114 -> 115
+	116 [label=IDExpr]
+	113 -> 116
+	117 [label=VarName]
+	116 -> 117
+	118 [label=j]
+	117 -> 118
+	119 [label=op]
+	112 -> 119
+	120 [label=GRE]
+	119 -> 120
+	121 [label=IDExpr]
+	112 -> 121
+	122 [label=VarName]
+	121 -> 122
+	123 [label=m]
+	122 -> 123
+	124 [label=StmtList]
+	111 -> 124
+	125 [label=AssignStmt]
+	124 -> 125
+	126 [label=IDExpr]
+	125 -> 126
+	127 [label=VarName]
+	126 -> 127
+	128 [label=j]
+	127 -> 128
+	129 [label=BinExpr]
+	125 -> 129
+	130 [label=IDExpr]
+	129 -> 130
+	131 [label=VarName]
+	130 -> 131
+	132 [label=j]
+	131 -> 132
+	133 [label=op]
+	129 -> 133
+	134 [label=sub]
+	133 -> 134
+	135 [label=IDExpr]
+	129 -> 135
+	136 [label=IntValue]
+	135 -> 136
+	137 [label=1]
+	136 -> 137
+	138 [label=WhileStmt]
+	83 -> 138
+	139 [label=UnaryExpr]
+	138 -> 139
+	140 [label=op]
+	139 -> 140
+	141 [label=not]
+	140 -> 141
+	142 [label=BinExpr]
+	139 -> 142
+	143 [label=IDExpr]
+	142 -> 143
+	144 [label=VarName]
+	143 -> 144
+	145 [label=i]
+	144 -> 145
+	146 [label=op]
+	142 -> 146
+	147 [label=GRE]
+	146 -> 147
+	148 [label=IDExpr]
+	142 -> 148
+	149 [label=VarName]
+	148 -> 149
+	150 [label=j]
+	149 -> 150
+	151 [label=StmtList]
+	138 -> 151
+	152 [label=AssignStmt]
+	151 -> 152
+	153 [label=IDExpr]
+	152 -> 153
+	154 [label=VarName]
+	153 -> 154
+	155 [label=t]
+	154 -> 155
+	156 [label=ArrayExpr]
+	152 -> 156
+	157 [label=ArrayName]
+	156 -> 157
+	158 [label=a]
+	157 -> 158
+	159 [label=IDExpr]
+	156 -> 159
+	160 [label=VarName]
+	159 -> 160
+	161 [label=i]
+	160 -> 161
+	162 [label=AssignStmt]
+	151 -> 162
+	163 [label=ArrayExpr]
+	162 -> 163
+	164 [label=ArrayName]
+	163 -> 164
+	165 [label=a]
+	164 -> 165
+	166 [label=IDExpr]
+	163 -> 166
+	167 [label=VarName]
+	166 -> 167
+	168 [label=i]
+	167 -> 168
+	169 [label=ArrayExpr]
+	162 -> 169
+	170 [label=ArrayName]
+	169 -> 170
+	171 [label=a]
+	170 -> 171
+	172 [label=IDExpr]
+	169 -> 172
+	173 [label=VarName]
+	172 -> 173
+	174 [label=j]
+	173 -> 174
+	175 [label=AssignStmt]
+	151 -> 175
+	176 [label=ArrayExpr]
+	175 -> 176
+	177 [label=ArrayName]
+	176 -> 177
+	178 [label=a]
+	177 -> 178
+	179 [label=IDExpr]
+	176 -> 179
+	180 [label=VarName]
+	179 -> 180
+	181 [label=j]
+	180 -> 181
+	182 [label=IDExpr]
+	175 -> 182
+	183 [label=VarName]
+	182 -> 183
+	184 [label=t]
+	183 -> 184
+	185 [label=AssignStmt]
+	151 -> 185
+	186 [label=IDExpr]
+	185 -> 186
+	187 [label=VarName]
+	186 -> 187
+	188 [label=i]
+	187 -> 188
+	189 [label=BinExpr]
+	185 -> 189
+	190 [label=IDExpr]
+	189 -> 190
+	191 [label=VarName]
+	190 -> 191
+	192 [label=i]
+	191 -> 192
+	193 [label=op]
+	189 -> 193
+	194 [label=add]
+	193 -> 194
+	195 [label=IDExpr]
+	189 -> 195
+	196 [label=IntValue]
+	195 -> 196
+	197 [label=1]
+	196 -> 197
+	198 [label=AssignStmt]
+	151 -> 198
+	199 [label=IDExpr]
+	198 -> 199
+	200 [label=VarName]
+	199 -> 200
+	201 [label=j]
+	200 -> 201
+	202 [label=BinExpr]
+	198 -> 202
+	203 [label=IDExpr]
+	202 -> 203
+	204 [label=VarName]
+	203 -> 204
+	205 [label=j]
+	204 -> 205
+	206 [label=op]
+	202 -> 206
+	207 [label=sub]
+	206 -> 207
+	208 [label=IDExpr]
+	202 -> 208
+	209 [label=IntValue]
+	208 -> 209
+	210 [label=1]
+	209 -> 210
+	211 [label=""]
+	138 -> 211
+	212 [label=WhileStmt]
+	36 -> 212
+	213 [label=BinExpr]
+	212 -> 213
+	214 [label=IDExpr]
+	213 -> 214
+	215 [label=VarName]
+	214 -> 215
+	216 [label=l]
+	215 -> 216
+	217 [label=op]
+	213 -> 217
+	218 [label=LES]
+	217 -> 218
+	219 [label=IDExpr]
+	213 -> 219
+	220 [label=VarName]
+	219 -> 220
+	221 [label=j]
+	220 -> 221
+	222 [label=StmtList]
+	212 -> 222
+	223 [label=FuncCallStmt]
+	222 -> 223
+	224 [label=FuncName]
+	223 -> 224
+	225 [label=qsort]
+	224 -> 225
+	226 [label=ExprList]
+	223 -> 226
+	227 [label=IDExpr]
+	226 -> 227
+	228 [label=VarName]
+	227 -> 228
+	229 [label=l]
+	228 -> 229
+	230 [label=IDExpr]
+	226 -> 230
+	231 [label=VarName]
+	230 -> 231
+	232 [label=j]
+	231 -> 232
+	233 [label=""]
+	212 -> 233
+	234 [label=WhileStmt]
+	36 -> 234
+	235 [label=BinExpr]
+	234 -> 235
+	236 [label=IDExpr]
+	235 -> 236
+	237 [label=VarName]
+	236 -> 237
+	238 [label=i]
+	237 -> 238
+	239 [label=op]
+	235 -> 239
+	240 [label=LES]
+	239 -> 240
+	241 [label=IDExpr]
+	235 -> 241
+	242 [label=VarName]
+	241 -> 242
+	243 [label=r]
+	242 -> 243
+	244 [label=StmtList]
+	234 -> 244
+	245 [label=FuncCallStmt]
+	244 -> 245
+	246 [label=FuncName]
+	245 -> 246
+	247 [label=qsort]
+	246 -> 247
+	248 [label=ExprList]
+	245 -> 248
+	249 [label=IDExpr]
+	248 -> 249
+	250 [label=VarName]
+	249 -> 250
+	251 [label=i]
+	250 -> 251
+	252 [label=IDExpr]
+	248 -> 252
+	253 [label=VarName]
+	252 -> 253
+	254 [label=r]
+	253 -> 254
+	255 [label=""]
+	234 -> 255
+	256 [label=ExecPart]
+	0 -> 256
+	257 [label=StmtList]
+	256 -> 257
+	258 [label=FuncCallStmt]
+	257 -> 258
+	259 [label=FuncName]
+	258 -> 259
+	260 [label=read]
+	259 -> 260
+	261 [label=ExprList]
+	258 -> 261
+	262 [label=IDExpr]
+	261 -> 262
+	263 [label=VarName]
+	262 -> 263
+	264 [label=n]
+	263 -> 264
+	265 [label=ForStmt]
+	257 -> 265
+	266 [label=LoopVar]
+	265 -> 266
+	267 [label=k]
+	266 -> 267
+	268 [label=IDExpr]
+	265 -> 268
+	269 [label=IntValue]
+	268 -> 269
+	270 [label=1]
+	269 -> 270
+	271 [label=IDExpr]
+	265 -> 271
+	272 [label=VarName]
+	271 -> 272
+	273 [label=n]
+	272 -> 273
+	274 [label=StmtList]
+	265 -> 274
+	275 [label=FuncCallStmt]
+	274 -> 275
+	276 [label=FuncName]
+	275 -> 276
+	277 [label=read]
+	276 -> 277
+	278 [label=ExprList]
+	275 -> 278
+	279 [label=ArrayExpr]
+	278 -> 279
+	280 [label=ArrayName]
+	279 -> 280
+	281 [label=a]
+	280 -> 281
+	282 [label=IDExpr]
+	279 -> 282
+	283 [label=VarName]
+	282 -> 283
+	284 [label=k]
+	283 -> 284
+	285 [label=FuncCallStmt]
+	257 -> 285
+	286 [label=FuncName]
+	285 -> 286
+	287 [label=qsort]
+	286 -> 287
+	288 [label=ExprList]
+	285 -> 288
+	289 [label=IDExpr]
+	288 -> 289
+	290 [label=IntValue]
+	289 -> 290
+	291 [label=1]
+	290 -> 291
+	292 [label=IDExpr]
+	288 -> 292
+	293 [label=VarName]
+	292 -> 293
+	294 [label=n]
+	293 -> 294
+	295 [label=ForStmt]
+	257 -> 295
+	296 [label=LoopVar]
+	295 -> 296
+	297 [label=k]
+	296 -> 297
+	298 [label=IDExpr]
+	295 -> 298
+	299 [label=IntValue]
+	298 -> 299
+	300 [label=1]
+	299 -> 300
+	301 [label=IDExpr]
+	295 -> 301
+	302 [label=VarName]
+	301 -> 302
+	303 [label=n]
+	302 -> 303
+	304 [label=StmtList]
+	295 -> 304
+	305 [label=FuncCallStmt]
+	304 -> 305
+	306 [label=FuncName]
+	305 -> 306
+	307 [label=writeln]
+	306 -> 307
+	308 [label=ExprList]
+	305 -> 308
+	309 [label=ArrayExpr]
+	308 -> 309
+	310 [label=ArrayName]
+	309 -> 310
+	311 [label=a]
+	310 -> 311
+	312 [label=IDExpr]
+	309 -> 312
+	313 [label=VarName]
+	312 -> 313
+	314 [label=k]
+	313 -> 314
+}

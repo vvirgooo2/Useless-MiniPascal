@@ -3,7 +3,7 @@
     #include <stdio.h>
     #include <string.h>
     #include "../ast/AST_node.h"
-    #include "main.h"
+    #include "../main.h"
     extern int yylex();
     extern FILE* yyin;
     void yyerror(const char* s);
@@ -139,7 +139,7 @@ simple_type:
     | TYPE_FLOAT_8
 { $$ = new SimpleType("real"); }
     | TYPE_FLOAT_32
-{ $$ = new SimpleType("double"); }
+{ $$ = new SimpleType("real"); }
     | TYPE_CHAR
 { $$ = new SimpleType("char"); }
     | TYPE_STRING
@@ -240,26 +240,26 @@ id_expr:
     ID
 { $$ = new IDExpr("var", (string)$1); }
     | INT
-{ $$ = new IDExpr("int", $1); }
+{ $$ = new IDExpr("Imm", (int)$1); }
     | CHAR
-{ $$ = new IDExpr("char", $1); }
+{ $$ = new IDExpr("Imm", (char)$1); }
     | FLOAT
-{ $$ = new IDExpr("float", $1); }
+{ $$ = new IDExpr("Imm", (double)$1); }
     | STRING
-{ $$ = new IDExpr("string", $1); }
+{ $$ = new IDExpr("Imm", (string)$1); }
 ;
 
 expr_node:
     expr_node GRE first_bin_expr
-{ $$ = new BinExpr("GRE", $1, $3); }
+{ $$ = new BinExpr("GT", $1, $3); }
     | expr_node LES first_bin_expr
-{ $$ = new BinExpr("LES", $1, $3); }
+{ $$ = new BinExpr("LT", $1, $3); }
     | expr_node EQ first_bin_expr
-{ $$ = new BinExpr("EQ", $1, $3); }
+{ $$ = new BinExpr("EQUAL", $1, $3); }
     | expr_node GREQ first_bin_expr
-{ $$ = new BinExpr("GREQ", $1, $3); }
+{ $$ = new BinExpr("GE", $1, $3); }
     | expr_node LESQ first_bin_expr
-{ $$ = new BinExpr("LESQ", $1, $3); }
+{ $$ = new BinExpr("LE", $1, $3); }
     | expr_node NE first_bin_expr
 { $$ = new BinExpr("NE", $1, $3); }
     | first_bin_expr
@@ -268,35 +268,35 @@ expr_node:
 
 first_bin_expr:
     first_bin_expr ADD second_bin_expr
-{ $$ = new BinExpr("add", $1, $3); }
+{ $$ = new BinExpr("PLUS", $1, $3); }
     | first_bin_expr SUB second_bin_expr
-{ $$ = new BinExpr("sub", $1, $3); }
+{ $$ = new BinExpr("MINUS", $1, $3); }
     | first_bin_expr OR second_bin_expr
-{ $$ = new BinExpr("or", $1, $3); }
+{ $$ = new BinExpr("OR", $1, $3); }
     | second_bin_expr
 { $$ = $1; }
 ;
 
 second_bin_expr:
     second_bin_expr MUL third_bin_expr
-{ $$ = new BinExpr("mul", $1, $3); }
+{ $$ = new BinExpr("MUL", $1, $3); }
     | second_bin_expr DIV third_bin_expr
-{ $$ = new BinExpr("div", $1, $3); }
+{ $$ = new BinExpr("DIV", $1, $3); }
     | second_bin_expr IDIV third_bin_expr
-{ $$ = new BinExpr("idiv", $1, $3); }
+{ $$ = new BinExpr("DIV", $1, $3); }
     | second_bin_expr AND third_bin_expr
-{ $$ = new BinExpr("and", $1, $3); }
+{ $$ = new BinExpr("AND", $1, $3); }
     | second_bin_expr MOD third_bin_expr
-{ $$ = new BinExpr("mod", $1, $3); }
+{ $$ = new BinExpr("MOD", $1, $3); }
     | third_bin_expr
 { $$ = $1; }
 ;
 
 third_bin_expr:
     NOT third_bin_expr
-{ $$ = new UnaryExpr("not", $2); }
+{ $$ = new UnaryExpr("NOT", $2); }
     | SUB third_bin_expr
-{ $$ = new UnaryExpr("sub", $2); }
+{ $$ = new UnaryExpr("SUB", $2); }
     | ID LPR expr_list RPR
 { $$ = new FunCallExpr((string)$1, $3); }
     | array_expr

@@ -1,13 +1,6 @@
 #include<stdio.h>
 
 
-// void strcpy(char* str1,char* str2, offset){
-//     for(int i=0;i<offset;i++){
-//         str1[i]=str2[i];
-//     }
-//     str1[offset]='0';
-// }
-
 int mycmp(char* str1, char*str2){
     int count=0;
     while(str1[count]!=0&&str2[count]!=0){

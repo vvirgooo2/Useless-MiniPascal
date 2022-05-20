@@ -51,6 +51,7 @@ public:
     
     bool isGlobal=true;
     bool genpointer=false;
+    bool breakif=false;
     llvm::Module *module;
     llvm::IRBuilder<> builder;
     llvm::Function *mainFunction;

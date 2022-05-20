@@ -16,8 +16,8 @@ int main(){
     // fscanf(yyin, "%s", s);
     // printf("%s\n",s);
     yyparse();
-    // Dict *astDict = new Dict(ast_root);
-    // astDict->writeJSONFile("./astVisualize/test.json");
+    Dict *astDict = new Dict(ast_root);
+    astDict->writeJSONFile("./astVisualize/test.json");
     CodeGenContext* context = new CodeGenContext();
     try{
         context->generate(ast_root);

@@ -1,5 +1,6 @@
 %{
 #include <string>
+#include <string.h>
 #include <iostream>
 #include <stdio.h>
 #include "../ast/AST_node.h"
@@ -13,97 +14,109 @@ void yyerror(char* s);
 digit [0-9]
 letter [a-zA-Z]
 string \"[^"]*\"
-char \'[.]\'
+char \'.\'
 id ({letter}|_)+({letter}|_|{digit})*
 
 %%
-"integer" { return TYPE_INT; printf("integer");}
+"integer" { printf("%s\n",yytext);return TYPE_INT; printf("integer");}
 
-"real" { return TYPE_FLOAT_8;}
+"real" { printf("%s\n",yytext);return TYPE_FLOAT_8;}
 
-"char" { return TYPE_CHAR;}
+"char" { printf("%s\n",yytext);return TYPE_CHAR;}
 
-"string" { return TYPE_STRING;}
+"string" { printf("%s\n",yytext);return TYPE_STRING;}
 
-"not" { return NOT;}
-"+" { return ADD;}
-[-] { return SUB;}
-"*" { return MUL;}
-"/" { return DIV;}
-"mod" { return MOD;}
-"div" { return IDIV;}
-"=" { return EQ;}
-">" { return GRE;}
-"<" { return LES;}
-">=" { return GREQ;}
-"<=" { return LESQ;}
-"<>" { return NE;}
-"or" { return OR;}
-"and" { return AND;}
-":=" { return ASSIGN;}
-".." { return ARANGE;}
-"[" { return LBR;}
-"]" { return RBR;}
-"(" { return LPR;}
-")" { return RPR;}
-"." { return DOT;}
-"," { return COM;}
-":" { return COL;}
-";" { return SEMI;}
-"^" { return CARET;}
+"not" { printf("%s\n",yytext);return NOT;}
+"+" { printf("%s\n",yytext);return ADD;}
+[-] { printf("%s\n",yytext);return SUB;}
+"*" { printf("%s\n",yytext);return MUL;}
+"/" { printf("%s\n",yytext);return DIV;}
+"mod" { printf("%s\n",yytext);return MOD;}
+"div" { printf("%s\n",yytext);return IDIV;}
+"=" { printf("%s\n",yytext);return EQ;}
+">" { printf("%s\n",yytext);return GRE;}
+"<" { printf("%s\n",yytext);return LES;}
+">=" { printf("%s\n",yytext);return GREQ;}
+"<=" { printf("%s\n",yytext);return LESQ;}
+"<>" { printf("%s\n",yytext);return NE;}
+"or" { printf("%s\n",yytext);return OR;}
+"and" { printf("%s\n",yytext);return AND;}
+":=" { printf("%s\n",yytext);return ASSIGN;}
+".." { printf("%s\n",yytext);return ARANGE;}
+"[" { printf("%s\n",yytext);return LBR;}
+"]" { printf("%s\n",yytext);return RBR;}
+"(" { printf("%s\n",yytext);return LPR;}
+")" { printf("%s\n",yytext);return RPR;}
+"." { printf("%s\n",yytext);return DOT;}
+"," { printf("%s\n",yytext);return COM;}
+":" { printf("%s\n",yytext);return COL;}
+";" { printf("%s\n",yytext);return SEMI;}
+"^" { printf("%s\n",yytext);return CARET;}
 "\n" {}
 
-"array" { return ARRAY;}
-"begin" { return BEGN;}
-"break" { return BREAK;}
-"case" { return CASE;}
-"const" { return CONST;}
-"to" { return TO;}
-"do" { return DO;}
-"else" { return ELSE;}
-"end" { return END;}
-"for" { return FOR;}
-"function" { return FUNC;}
-"if" { return IF;}
-"of" { return OF;}
-"procedure" { return PROC;}
-"program" { return PROG;}
-"repeat" { return REPEAT;}
-"then" { return THEN;}
-"until" { return UNTIL;}
-"var" { return VAR;}
-"while" { return WHILE;}
+"array" { printf("%s\n",yytext);return ARRAY;}
+"begin" { printf("%s\n",yytext);return BEGN;}
+"break" { printf("%s\n",yytext);return BREAK;}
+"case" { printf("%s\n",yytext);return CASE;}
+"const" { printf("%s\n",yytext);return CONST;}
+"to" { printf("%s\n",yytext);return TO;}
+"do" { printf("%s\n",yytext);return DO;}
+"else" { printf("%s\n",yytext);return ELSE;}
+"end" { printf("%s\n",yytext);return END;}
+"for" { printf("%s\n",yytext);return FOR;}
+"function" { printf("%s\n",yytext);return FUNC;}
+"if" { printf("%s\n",yytext);return IF;}
+"of" { printf("%s\n",yytext);return OF;}
+"procedure" { printf("%s\n",yytext);return PROC;}
+"program" { printf("%s\n",yytext);return PROG;}
+"repeat" { printf("%s\n",yytext);return REPEAT;}
+"then" { printf("%s\n",yytext);return THEN;}
+"until" { printf("%s\n",yytext);return UNTIL;}
+"var" { printf("%s\n",yytext);return VAR;}
+"while" { printf("%s\n",yytext);return WHILE;}
 
 
 
 [0-9]{digit}* {
     yylval.type_int = atoi(yytext);
      
-    return INT;
+    printf("%s\n",yytext);return INT;
 }
 
 -?(0|int)[.]{digit}+ {
     yylval.type_float = atof(yytext);
      
-    return FLOAT;
+    printf("%s\n",yytext);return FLOAT;
 }
 
 {string} {
-    yylval.type_string = strdup(yytext);
+    char s[30] = {0};
+    for(int i=0;i<strlen(yytext)-2;i++){
+        s[i] = yytext[i+1];
+    }
+    yylval.type_string = s;
      
-    return STRING;
+    printf("%s\n",yytext);return STRING;
+}
+"'\\n'" {
+    yylval.type_char = 10;
+    return CHAR;
 }
 
-{char} {
-    yylval.type_char = yytext[0];
-     
+"'\\0" {
+    yylval.type_char = 0;
     return CHAR;
+}
+{char} {
+    yylval.type_char = yytext[1];
+     
+    printf("%s\n",yytext);return CHAR;
 }
 
 {id} {
     yylval.id = strdup(yytext);
      
-    return ID;
+    printf("%s\n",yytext);return ID;
 }
 
 . { }

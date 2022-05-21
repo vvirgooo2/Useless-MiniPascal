@@ -52,73 +52,73 @@ llvm::GenericValue CodeGenContext::runCode(){
     
 }
 
-int main(){
-    //VarDeclList
-    VarDeclList* vdl = new VarDeclList();
-    // a,b : integer
-    IDList* l =new IDList();
-    l->pushID("a");
-    l->pushID("b");
-    vdl->pushVarDecl(new VarDecl(new SimpleType("integer"),l));
-    //c: string
-    IDList* l1=new IDList();
-    l1->pushID("c");
-    vdl->pushVarDecl(new VarDecl(new ArrayType((string)"integer",1,7),l1));
-    //d : double
-    vdl->pushVarDecl(new VarDecl(new SimpleType("real"),new IDList("d")));
+// int main(){
+//     //VarDeclList
+//     VarDeclList* vdl = new VarDeclList();
+//     // a,b : integer
+//     IDList* l =new IDList();
+//     l->pushID("a");
+//     l->pushID("b");
+//     vdl->pushVarDecl(new VarDecl(new SimpleType("integer"),l));
+//     //c: string
+//     IDList* l1=new IDList();
+//     l1->pushID("c");
+//     vdl->pushVarDecl(new VarDecl(new ArrayType((string)"integer",1,7),l1));
+//     //d : double
+//     vdl->pushVarDecl(new VarDecl(new SimpleType("real"),new IDList("d")));
 
-    //function DeclList
-    //Head
-    FuncDeclList* funclist=new FuncDeclList();
-    ParaList* pal =new ParaList();
-    pal->pushNewPara(new VarDecl(new SimpleType("real"),new IDList("in")));
-    FuncHead* fd=new FuncHead("Testout",new SimpleType("real"),pal); 
-    //Body
-    DeclPart* d1 =new DeclPart(new VarDeclList(),new FuncDeclList());
-    StmtList* Stl=new StmtList();
-    ExprList* l2 = new ExprList();
-    l2->pushExprNode(new IDExpr("var",(string)"in"));
-    Stl->pushStmt(new FuncCallStmt("writeln",l2));
-    ExecPart* ep =new ExecPart(Stl);
-    FuncBody* funcb = new FuncBody(d1,ep,new IDExpr("Imm",1));
-    //OneFuncDecl
-    OneFuncDecl* Testout=new OneFuncDecl(fd,funcb);
-    funclist->pushOneFuncDecl(Testout);
-    //declPart
-    DeclPart* declp = new DeclPart(vdl,funclist);
+//     //function DeclList
+//     //Head
+//     FuncDeclList* funclist=new FuncDeclList();
+//     ParaList* pal =new ParaList();
+//     pal->pushNewPara(new VarDecl(new SimpleType("real"),new IDList("in")));
+//     FuncHead* fd=new FuncHead("Testout",new SimpleType("real"),pal); 
+//     //Body
+//     DeclPart* d1 =new DeclPart(new VarDeclList(),new FuncDeclList());
+//     StmtList* Stl=new StmtList();
+//     ExprList* l2 = new ExprList();
+//     l2->pushExprNode(new IDExpr("var",(string)"in"));
+//     Stl->pushStmt(new FuncCallStmt("writeln",l2));
+//     ExecPart* ep =new ExecPart(Stl);
+//     FuncBody* funcb = new FuncBody(d1,ep,new IDExpr("Imm",1));
+//     //OneFuncDecl
+//     OneFuncDecl* Testout=new OneFuncDecl(fd,funcb);
+//     funclist->pushOneFuncDecl(Testout);
+//     //declPart
+//     DeclPart* declp = new DeclPart(vdl,funclist);
 
-    //ExecPart
-    StmtList* stl2 =new StmtList();
-    stl2->pushStmt(new FuncCallStmt("read",new ExprList(new IDExpr("var", (string)"a"))));
-    stl2->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("var", (string)"a"))));
+//     //ExecPart
+//     StmtList* stl2 =new StmtList();
+//     stl2->pushStmt(new FuncCallStmt("read",new ExprList(new IDExpr("var", (string)"a"))));
+//     stl2->pushStmt(new FuncCallStmt("writeln",new ExprList(new IDExpr("var", (string)"a"))));
 
-    // //assign
-    // AssignStmt* as = new AssignStmt(new ArrayExpr("c",new IDExpr("Imm",2)),new IDExpr("Imm",190));
-    // stl2->pushStmt(as);
-    // stl2->pushStmt(new AssignStmt(new IDExpr("var",(string)"d"),new IDExpr("Imm",2.567)));
-    // //for
-    // StmtList* forsubst =new StmtList();
-    // forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new ArrayExpr("c",new IDExpr("var",(string)"a")))));
-    // ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("Imm",6),forsubst);
-    // stl2->pushStmt(fo);
-    // //call
-    // stl2->pushStmt(new FuncCallStmt("Testout",new ExprList(new IDExpr("var", (string)"d"))));
+//     // //assign
+//     // AssignStmt* as = new AssignStmt(new ArrayExpr("c",new IDExpr("Imm",2)),new IDExpr("Imm",190));
+//     // stl2->pushStmt(as);
+//     // stl2->pushStmt(new AssignStmt(new IDExpr("var",(string)"d"),new IDExpr("Imm",2.567)));
+//     // //for
+//     // StmtList* forsubst =new StmtList();
+//     // forsubst->pushStmt(new FuncCallStmt("writeln",new ExprList(new ArrayExpr("c",new IDExpr("var",(string)"a")))));
+//     // ForStmt* fo = new ForStmt("a",new IDExpr("Imm",1),new IDExpr("Imm",6),forsubst);
+//     // stl2->pushStmt(fo);
+//     // //call
+//     // stl2->pushStmt(new FuncCallStmt("Testout",new ExprList(new IDExpr("var", (string)"d"))));
 
 
-    ExecPart* execp = new ExecPart(stl2);
-    Program* root = new Program(new ProgHead("test"),declp,execp);
+//     ExecPart* execp = new ExecPart(stl2);
+//     Program* root = new Program(new ProgHead("test"),declp,execp);
 
-    CodeGenContext* context = new CodeGenContext();
-    try{
-        context->generate(root);
+//     CodeGenContext* context = new CodeGenContext();
+//     try{
+//         context->generate(root);
         
-        int fd = open("result.ll", O_CREAT | O_WRONLY, 0644);
-        dup2(fd, 1);
-        close(fd);
+//         int fd = open("result.ll", O_CREAT | O_WRONLY, 0644);
+//         dup2(fd, 1);
+//         close(fd);
           
-        context->module->print(llvm::outs(),nullptr);
-    }
-    catch (std::runtime_error &error){
-        cout << "[Error] " << error.what() << endl;
-    }
-}
+//         context->module->print(llvm::outs(),nullptr);
+//     }
+//     catch (std::runtime_error &error){
+//         cout << "[Error] " << error.what() << endl;
+//     }
+// }

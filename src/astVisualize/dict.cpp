@@ -625,9 +625,9 @@ void Dict::genFrom_IDExpr(IDExpr *node)
         {
             immDict = new Dict("LongIntValue", to_string(node->getLongIntValue()));
         }
-        else if (ImmType == "float")
+        else if (ImmType == "real")
         {
-            immDict = new Dict("FloatValue", to_string(node->getFloatValue()));
+            immDict = new Dict("DoubleValue", to_string(node->getDoubleValue()));
         }
         else if (ImmType == "string")
         {

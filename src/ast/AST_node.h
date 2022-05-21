@@ -42,18 +42,11 @@ class ParaList;
 class BaseNode
 {
 private:
-    // ClassName
+    int line_num=-1;
     string classname = "base";
-
 public:
-    BaseNode(string name)
-    {
-        this->classname = name;
-    }
-    string getClass() const
-    {
-        return this->classname;
-    }
+    BaseNode(string name){ this->classname = name; }
+    string getClass() const { return this->classname; }
     virtual llvm::Value *CodeGen(CodeGenContext &context) = 0;
 };
 

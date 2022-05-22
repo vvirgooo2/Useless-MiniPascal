@@ -45,6 +45,9 @@ private:
     int line_num=-1;
     string classname = "base";
 public:
+    int line;
+    void set_last_line(int l){line = l;}
+    int get_last_line(){ return line;}
     BaseNode(string name){ this->classname = name; }
     string getClass() const { return this->classname; }
     virtual llvm::Value *CodeGen(CodeGenContext &context) = 0;

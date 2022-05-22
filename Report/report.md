@@ -107,32 +107,6 @@ id ({letter}|_)+({letter}|_|{digit})*
 ##### 2.2.2 保留字
 
 ```c++
-<<<<<<< Updated upstream
-"integer" { return TYPE_INT; printf("integer");}
-"real" { return TYPE_FLOAT_8;}
-"char" { return TYPE_CHAR;}
-"string" { return TYPE_STRING;}
-"array" { return ARRAY;}
-"begin" { return BEGN;}
-"break" { return BREAK;}
-"case" {return CASE;}
-"const" { return CONST;}
-"to" { return TO;}
-"do" { return DO;}
-"else" { return ELSE;}
-"end" { return END;}
-"for" { return FOR;}
-"function" { return FUNC;}
-"if" { return IF;}
-"of" { return OF;}
-"procedure" { return PROC;}
-"program" { return PROG;}
-"repeat" { return REPEAT;}
-"then" { return THEN;}
-"until" { return UNTIL;}
-"var" { return VAR;}
-"while" { return WHILE;}
-=======
 "integer" {return TYPE_INT; printf("integer");}
 "real" {return TYPE_FLOAT_8;}
 "char" {return TYPE_CHAR;}
@@ -157,41 +131,12 @@ id ({letter}|_)+({letter}|_|{digit})*
 "until" {return UNTIL;}
 "var" {return VAR;}
 "while" {return WHILE;}
->>>>>>> Stashed changes
 ```
 我们实现了部分pascal关键字的检测
 
 ##### 2.2.3 运算符
 
 ```c++
-<<<<<<< Updated upstream
-"not" { ;return NOT;}
-"+" { return ADD;}
-[-] { return SUB;}
-"*" { return MUL;}
-"/" { return DIV;}
-"mod" { return MOD;}
-"div" { return IDIV;}
-"=" { return EQ;}
-">" { return GRE;}
-"<" { return LES;}
-">=" { return GREQ;}
-"<=" { return LESQ;}
-"<>" { return NE;}
-"or" { return OR;}
-"and" { return AND;}
-":=" { return ASSIGN;}
-".." { return ARANGE;}
-"[" { return LBR;}
-"]" { return RBR;}
-"(" { return LPR;}
-")" { return RPR;}
-"." { return DOT;}
-"," { return COM;}
-":" { return COL;}
-";" { return SEMI;}
-"^" { return CARET;}
-=======
 "not" {return NOT;}
 "+" {return ADD;}
 [-] {return SUB;}
@@ -218,7 +163,6 @@ id ({letter}|_)+({letter}|_|{digit})*
 ":" {return COL;}
 ";" {return SEMI;}
 "^" {return CARET;}
->>>>>>> Stashed changes
 "\n" {}
 ```
 我们实现了pascal中运算符的检测。

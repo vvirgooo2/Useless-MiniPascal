@@ -39,7 +39,7 @@ llvm::Value* BinExpr::CodeGen(CodeGenContext &context){
         else if(op=="NE")
             return context.builder.CreateFCmpUNE(L,R,"ne_cmp");
         else
-            throw std::runtime_error("Unknown F operation");
+            throw std::runtime_error("Unknown F operation"+op);
     }
     /* GE, GT, LE, LT, EQUAL, UNEQUAL,
                 PLUS, MINUS, OR, MUL, 
@@ -124,7 +124,7 @@ llvm::Value* ArrayExpr::CodeGen(CodeGenContext &context){
     string name  = this->getArrayName();
     int start = context.getArrayRecord(name).first;
     auto sr = context.builder.getInt32(start);
-    auto trueindex = context.builder.CreateBinOp(llvm::Instruction::Sub,index,sr);
+    auto trueindex=context.builder.CreateSub(index,sr,"sub");
     auto zero = llvm::ConstantInt::get(context.builder.getInt32Ty(),0);
     if(context.genpointer)
         return context.builder.CreateInBoundsGEP(arrptr,{zero,trueindex});
@@ -135,8 +135,6 @@ llvm::Value* ArrayExpr::CodeGen(CodeGenContext &context){
 
 //Need to modify 
 llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
-    cout<<this->getType()<<endl;
-    cout<<this->getImmType()<<endl;
     if(type=="Imm"){
         if(this->immtype=="bool"){
             return llvm::ConstantInt::get(context.builder.getInt1Ty(),this->getBooleanValue(),true);
@@ -360,7 +358,6 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
                 args.push_back(r);
             }
             else if(r->getType()==context.builder.getInt8PtrTy()){
-                cout<<"get a ptr"<<endl;
                 format += "%s";
                 args.push_back(r);
             }
@@ -381,7 +378,6 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
         args.insert(args.begin(), var_ref);
         auto call = context.builder.CreateCall(context.printf_func, llvm::makeArrayRef(args), "");
         return call;
-        return NULL;
     }
     else if(call->getFuncName()=="read" || call->getFuncName()=="readln"){
         cout<<"CallRead"<<endl;
@@ -455,7 +451,6 @@ llvm::Value* RepeatStmt::CodeGen(CodeGenContext &context){
     context.builder.SetInsertPoint(end);
 
     auto test = this->getConditionExprNode()->CodeGen(context);
-
     auto ret = context.builder.CreateCondBr(test,next,body);
 
     context.builder.SetInsertPoint(next);
@@ -511,12 +506,12 @@ llvm::Value* IfStmt::CodeGen(CodeGenContext &context){
 
     cout<<"Generating IfStmt..."<<endl;
     llvm::Value* test = this->getConditionNode()->CodeGen(context);
-    auto btrue=llvm::BasicBlock::Create(context.module->getContext(),"then",context.curfunction);
-    auto bfalse=llvm::BasicBlock::Create(context.module->getContext(),"else",context.curfunction);
+    auto blocktrue=llvm::BasicBlock::Create(context.module->getContext(),"then",context.curfunction);
+    auto blockfalse=llvm::BasicBlock::Create(context.module->getContext(),"else",context.curfunction);
     auto next=llvm::BasicBlock::Create(context.module->getContext(),"next",context.curfunction);
 
-    context.builder.CreateCondBr(test,btrue,bfalse);
-    context.builder.SetInsertPoint(btrue);
+    context.builder.CreateCondBr(test,blocktrue,blockfalse);
+    context.builder.SetInsertPoint(blocktrue);
     this->getStmtListNode()->CodeGen(context);
     if(context.breakif==false) context.builder.CreateBr(next);
     else {
@@ -524,7 +519,7 @@ llvm::Value* IfStmt::CodeGen(CodeGenContext &context){
         context.breakif=false;
     }
     
-    context.builder.SetInsertPoint(bfalse);
+    context.builder.SetInsertPoint(blockfalse);
     if(this->getElseStmtNode()!=NULL){
         cout<<"Generate Else"<<endl;
         this->getElseStmtNode()->CodeGen(context);
@@ -654,7 +649,7 @@ llvm::Value* VarDecl::CodeGen(CodeGenContext &context){
                 ret = new llvm::GlobalVariable(*context.module,ty,false,llvm::GlobalVariable::ExternalLinkage,constant,*i);
                 cout<<"create global: "<<*i<<endl;
             }
-                return ret; 
+            return ret; 
         }
         else{
             //array type

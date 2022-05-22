@@ -642,8 +642,12 @@ llvm::Value* AssignStmt::CodeGen(CodeGenContext &context){
 }
 ```
 
-这个节点可以直接调用
+这个节点可以直接调用左子节点和右子节点的Codegen方法，从而实现“需求驱动”的递归遍历。
 
-### 七、编译器测试
+下面将会展示每类节点的CodeGen方法的实现，在主函数中，只需要调用根节点的Codegen方法即可遍历整棵树。
+
+
+
+2、区域划分节点的Code
 
 ### 八、心得与体会

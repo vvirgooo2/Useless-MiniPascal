@@ -3,14 +3,15 @@
         {
             "name": "Linux",
             "includePath": [
-                "/usr/include/llvm-6.0/**",
-                "/usr/include/llvm-c-6.0/**",
+                "/usr/include/llvm-6.0/llvm/**",
+                "/usr/include/llvm-6.0-c/llvm/**",
                 "/usr/include/**"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/g++",
+            "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
             "cppStandard": "c++11",
+            "intelliSenseMode": "linux-clang-x64"
         }
     ],
     "version": 4

@@ -6,7 +6,7 @@ using namespace std;
 class Dict
 {
 private:
-    string key;     // classname
+    string key;     // 存储节点的classname
     string valType; // 值类型：只能为str/dict，取值与下面一个对应
     string strValue;
     vector<Dict *> dictValue;

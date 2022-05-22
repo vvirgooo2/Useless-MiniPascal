@@ -160,6 +160,112 @@ VarDecl：一组变量定义
 
 ### 五、语法树可视化
 
+语法树的可视化帮助我们更好地理解在parse过程中建立语法树的过程，也方便我们对语法编写的正确性进行验证。
+
+##### 1、实现方法
+
+可视化部分的实现目标是传入已经建好的语法树的节点可视化出该节点下的语法树的所有组成节点，可以从树的每一层看出对应的语法。本项目中对于语法树中的节点都是继承了`BaseNode`这个基类的子类，语法树中节点的连接关系通过各种类内成员变量，即某个节点类的指针来表示。由于本项目中的类都是自定义的，不方便将使用现有的可视化库将传入的语法树节点指针直接可视化；因此，本项目中设计了`Dict`类将语法树存储为字典类型，并且可以按照`JSON`格式进行输出，方便后续的可视化。
+
+###### `Dict`类
+
+```c++
+class Dict
+{
+private:
+    string key;     // 存储节点的classname
+    string valType; // 值类型：只能为str/dict，取值与下面一个对应
+    string strValue;
+    vector<Dict *> dictValue;
+
+    void addOneDictValue(Dict *dict);
+
+    void genFrom_Program(Program *node);   // ProgHead + DeclPart + ExecPart
+    void genFrom_ProgHead(ProgHead *node); // name
+    void genFrom_DeclPart(DeclPart *node); // VarDeclList + FuncDeclList
+
+    void genFrom_VarDeclList(VarDeclList *node); // VarDecl ...
+    void genFrom_VarDecl(VarDecl *node);         // Type + IDlist
+    void genFrom_SimpleType(SimpleType *node);   // leaf
+    void genFrom_ArrayType(ArrayType *node);     // leaf
+    void genFrom_IDList(IDList *node);           // leaf
+
+    void genFrom_FuncDeclList(FuncDeclList *node); // OneFuncDecl ...
+    void genFrom_OneFuncDecl(OneFuncDecl *node);   // FuncHead + FuncBody
+    void genFrom_FuncHead(FuncHead *node);         // Type + Paralist
+    void genFrom_ParaList(ParaList *node);         // VarDecl ...
+
+    void genFrom_FuncBody(FuncBody *node); // DeclPart + ExecPart
+    void genFrom_ExecPart(ExecPart *node); // StmtList
+
+    void genFrom_StmtList(StmtList *node);         // Stmt ...
+    void genFrom_AssignStmt(AssignStmt *node);     // id(Expr) + rexpr(Expr)
+    void genFrom_ForStmt(ForStmt *node);           // var + startexpr + endexpr + stmtl
+    void genFrom_FuncCallStmt(FuncCallStmt *node); // funcname + el(ExprList)
+    void genFrom_RepeatStmt(RepeatStmt *node);     // cond(Expr) + sl(StmtList)
+    void genFrom_WhileStmt(WhileStmt *node);       // con(Expr) + sl(StmtList)
+    void genFrom_ElseStmt(ElseStmt *node);         // list(StmtList)
+    void genFrom_IfStmt(IfStmt *node);             // con(Expr) + sl(StmtList) + els(ElseStmt)
+    void genFrom_BreakStmt(BreakStmt *node);
+
+    void genFrom_ExprList(ExprList *node);       // Expr ...
+    Dict *genFrom_Expr(Expr *node);              // judge the Expr type
+    void genFrom_BinExpr(BinExpr *node);         // op + lhs + rhs
+    void genFrom_UnaryExpr(UnaryExpr *node);     // op (NOT) + ex
+    void genFrom_FunCallExpr(FunCallExpr *node); // funcname + ExprList
+    void genFrom_ArrayExpr(ArrayExpr *node);     // arrayname + Expr...(index_list)
+    void genFrom_IDExpr(IDExpr *node);           // leaf
+
+public:
+    Dict(string key, string value) : valType("str"), key(key), strValue(value) {}
+    Dict(string key, Dict *value) : valType("dict"), key(key), strValue("") { dictValue.push_back(value); }
+    Dict(pair<MyType *, string> node);
+    Dict(BaseNode *node);
+
+    void writeJSONFile(string filepath);
+    string getJSONString();
+};
+```
+
+如上代码所示，`Dict`类中字典的键是各个节点的类名，对应的值可以有两种类型，一种是代表语法树已经到达了叶节点的字符串类型，另一种是表示非叶节点的字典列表类型。字符串类型将存储叶节点的值，例如变量名、变量类型、数字、字符等。字典列表类型，可以存储不定数量的字典，通过`vector`进行存储。将语法树转为字典，主要是通过在`Dict`类的构造函数中对当前节点的类型进行判断，然后对不同节点的定义进行适配分析，用DFS的方式遍历传入的语法树，将所有节点的信息加入到字典中。再通过该类的`public`函数中的`void writeJSONFile(string filepath);`将转换后的字典写入到指定的JSON文件中，方便后续解析。
+
+
+
+##### 2、graphviz可视化
+
+本项目的课时化代码使用了graphviz库，该库可以通过调用已经封装好的函数进行树型图的可视化，只需要调用画节点和连接线的函数，再将绘制图像以图片的形式输出到指定的路径下，便可以达到输出语法树的功能。graphviz库不需要人为设置具体的绘制细节（图片大小、图中各种元素的位置等），库中的`Digraph`类会根据要绘制的语法树的形状安排各个节点的位置，调整合适的图片大小，使用起来十分方便。具体实现中，使用了python代码对输出到指定JSON文件的语法树字典进行读取，Python可以解读JSON文件，之间转化为Python的基本类型之一——字典。再使用DFS对字典进行遍历，用直线将各级父子节点连接，在叶节点后绘制代表具体的叶节点值的一个节点。
+
+可视化部分具体的使用伪代码如下所示：
+
+```c++
+// ast_root为要传入的语法树的节点指针
+Dict *astDict = new Dict(ast_root); // 将语法树转为字典类型
+astDict->writeJSONFile("test.json"); // 将字典写入到指定路径下的JSON文件中
+```
+
+存入JSON文件后，再通过运行visualize.py中的Python代码来绘制语法树：
+
+```shell
+python visulilze.py
+```
+
+
+
+##### 3、可视化结果
+
+对需要测试的三个pascal文件进行解析并生成相应的语法树后，使用上述的可视化方法进行可视化，生成的语法树结果如下图所示：
+
+###### 快速排序程序语法树可视化
+
+###### 矩阵乘法程序语法树可视化
+
+###### 选课助手程序语法树可视化
+
+
+
+
+
+
+
 ### 六、中间代码生成
 
 ##### 1、基本框架与语法树遍历方法：
@@ -191,3 +297,8 @@ llvm::Value* AssignStmt::CodeGen(CodeGenContext &context){
 ### 七、编译器测试
 
 ### 八、心得与体会
+
+
+
+高婧：本次项目实现了从用flex和bison对代码进行词法分析和语法分析，再转化为使用自定义类的语法树，然后用llvm生成中间代码。整个实验的过程与上课的理论相契合，在课上对于比较抽象的语法树，我没有马上理解。在本次项目中我实现了语法树的可视化部分，再项目开发过程中对课堂上所讲述的语法树的分析、建立过程有了更深的理解。语法树根据定义的语法规则一步步自顶而下地从根节点到叶节点建立语法树的过程可以在可视化时清楚地了解。为了便于可视化，使用了graphviz库的python库，使得可视化部分的代码编写难度降低，代码结构更加清晰。本项目的开发让我对于编译器的工作目的和词法、语法分析的方式都有了更好的理解，对课堂的内容也进行了加深巩固，而且和组员的项目合作过程也很融洽，整体上收获很大。
+

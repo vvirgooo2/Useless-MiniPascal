@@ -158,7 +158,7 @@ Dict::Dict(BaseNode *root)
     else if (nodeType == "elsestmt")
     {
         ElseStmt *node = (ElseStmt *)root;
-        if(node->getStmtListNode() != NULL)
+        if (node->getStmtListNode() != NULL)
             genFrom_ElseStmt(node);
     }
     else if (nodeType == "ifstmt")
@@ -203,7 +203,8 @@ void Dict::writeJSONFile(string filepath)
 
 void Dict::addOneDictValue(Dict *value)
 {
-    this->dictValue.push_back(value);
+    if (value != NULL)
+        this->dictValue.push_back(value);
 }
 
 void Dict::genFrom_Program(Program *node)
@@ -211,10 +212,13 @@ void Dict::genFrom_Program(Program *node)
     this->key = "Program";
     this->valType = "dict";
     Dict *ProgHeadDict = new Dict(node->getProgHeadNode());
-    Dict *DeclPartDict = new Dict(node->getDeclPartNode());
-    Dict *ExecPartDict = new Dict(node->getExecPartNode());
     addOneDictValue(ProgHeadDict);
-    addOneDictValue(DeclPartDict);
+    if (node->getDeclPartNode() != NULL)
+    {
+        Dict *DeclPartDict = new Dict(node->getDeclPartNode());
+        addOneDictValue(DeclPartDict);
+    }
+    Dict *ExecPartDict = new Dict(node->getExecPartNode());
     addOneDictValue(ExecPartDict);
 }
 
@@ -229,10 +233,16 @@ void Dict::genFrom_DeclPart(DeclPart *node)
 { // VarDeclList + FuncDeclList
     this->key = "DeclPart";
     this->valType = "dict";
-    Dict *VarDeclListDict = new Dict(node->getVarListNode());
-    Dict *FuncDeclListDict = new Dict(node->getFuncPartNode());
-    addOneDictValue(VarDeclListDict);
-    addOneDictValue(FuncDeclListDict);
+    if (node->getVarListNode() != NULL)
+    {
+        Dict *VarDeclListDict = new Dict(node->getVarListNode());
+        addOneDictValue(VarDeclListDict);
+    }
+    if (node->getFuncPartNode() != NULL)
+    {
+        Dict *FuncDeclListDict = new Dict(node->getFuncPartNode());
+        addOneDictValue(FuncDeclListDict);
+    }
 }
 
 void Dict::genFrom_VarDeclList(VarDeclList *node)
@@ -380,8 +390,11 @@ void Dict::genFrom_ExecPart(ExecPart *node)
     this->key = "ExecPart";
     this->valType = "dict";
 
-    Dict *StmtListDict = new Dict(node->getStmtListNode());
-    addOneDictValue(StmtListDict);
+    if (node->getStmtListNode() != NULL)
+    {
+        Dict *StmtListDict = new Dict(node->getStmtListNode());
+        addOneDictValue(StmtListDict);
+    }
 }
 
 void Dict::genFrom_StmtList(StmtList *node)
@@ -599,7 +612,7 @@ void Dict::genFrom_ArrayExpr(ArrayExpr *node)
     this->valType = "dict";
     Dict *arrayNameDict = new Dict("ArrayName", node->getArrayName());
     addOneDictValue(arrayNameDict);
-    Expr * index = node->getIndexExprNode();
+    Expr *index = node->getIndexExprNode();
     Dict *exprDict = this->genFrom_Expr(index);
     addOneDictValue(exprDict);
 }
@@ -632,6 +645,39 @@ void Dict::genFrom_IDExpr(IDExpr *node)
         else if (ImmType == "string")
         {
             immDict = new Dict("StringValue", node->getStringValue());
+        }
+        else if (ImmType == "char")
+        {
+            string s;
+            char c = node->getCharValue();
+            if (c == 0)
+                s = "\\\\0";
+            else if (c == 7)
+                s = "\\\\a";
+            else if (c == 8)
+                s = "\\\\b";
+            else if (c == 9)
+                s = "\\\\t";
+            else if (c == 10)
+                s = "\\\\n";
+            else if (c == 11)
+                s = "\\\\v";
+            else if (c == 12)
+                s = "\\\\f";
+            else if (c == 13)
+                s = "\\\\r";
+            else if (c == 34)
+                s = "\\\\\"";
+            else if (c == 39)
+                s = "\\\\\'";
+            else if (c == 63)
+                s = "\\\\?";
+            else if (c == 92)
+                s = "\\\\\\\\";
+            else
+                s = s + c;
+
+            immDict = new Dict("CharValue", s);
         }
         else if (ImmType == "boolean")
         {

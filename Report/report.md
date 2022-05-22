@@ -739,7 +739,7 @@ auto function = llvm::Function::Create(func_type,llvm::Function::ExternalLinkage
 - api示例如下：
 
 ```c++
-	   llvm::Value * ret;
+       llvm::Value * ret;
        for(auto i=list.begin(); i!=list.end(); i++){
             ret = new llvm::GlobalVariable(
           		*context.module,ty,false,
@@ -832,7 +832,7 @@ llvm::Value* FuncCallStmt::CodeGen(CodeGenContext &context){
 - api调用示例如下：
 
 ```c++
- 		if(op == "PLUS") 
+        if(op == "PLUS") 
             return context.builder.CreateFAdd(L,R,"add");
         else if(op=="MINUS") 
             return context.builder.CreateFSub(L,R,"sub");
@@ -884,7 +884,7 @@ llvm::Value* FunCallExpr::CodeGen(CodeGenContext &context){
 - 判断当前是否在取指针，从而返回值或指针
 
 ```c++
- if(context.genpointer)
+    if(context.genpointer)
         return context.builder.CreateInBoundsGEP(arrptr,{zero,trueindex});
     else 
         return context.builder.CreateLoad(context.builder.CreateInBoundsGEP(arrptr,						{zero,trueindex}));

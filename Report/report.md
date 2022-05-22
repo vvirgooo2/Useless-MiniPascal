@@ -29,7 +29,7 @@
 
 ​	我们开发的环境为：Ubuntu -18.04，flex，bison，LLVM-6.0，Clang-6.0
 
-​	开发全程采用Github进行版本控制及协作，目前commit次数达50余次
+​	开发全程采用Github进行版本控制及协作。
 
 ​	
 
@@ -55,6 +55,7 @@
 标准lex文件由三部分组成，分别是定义区、规则区和⽤用户子过程区。在定义区，⽤用户可以编写C语⾔言中的声明语句，导入需要的头文件或声明变量。在规则区，用户需要编写以正则表达式和对应的动作的形式的代码。在用户子过程区，用户可以定义函数。
 ####2.2 实现过程
 #####2.2.1 立即数
+
 ```c++
 digit [0-9]
 letter [a-zA-Z]
@@ -644,10 +645,199 @@ llvm::Value* AssignStmt::CodeGen(CodeGenContext &context){
 
 这个节点可以直接调用左子节点和右子节点的Codegen方法，从而实现“需求驱动”的递归遍历。
 
-下面将会展示每类节点的CodeGen方法的实现，在主函数中，只需要调用根节点的Codegen方法即可遍历整棵树。
+
+
+##### 2、CodeGenContext类设计
+
+LLVM的基本逻辑是，一个Module代表一个文件，一个BasicBlock代表一个代码块，所以生成代码实际上就是指定module之后，不断新建和向每个BasicBlock插入语句的过程。我们需要一个Context类来保存现在的文件信息和所在的块，以及历史块和很多的上下文信息。
+
+```C++
+class CodeGenContext{
+private:
+    std::vector<CodeGenBlock *> blocks;
+    //主函数
+    std::map<std::string,pair<int,int>> arrayrecord;
+public:
+    
+    bool isGlobal=true;
+    bool genpointer=false;
+    bool breakif=false;
+    llvm::Module *module;
+    llvm::IRBuilder<> builder;
+    llvm::Function *mainFunction;
+    llvm::LLVMContext globalcontext;
+    llvm::Function *curfunction;
+
+    //system function
+    llvm::Function *printf_func;
+    llvm::Function *scanf_func;
+    ...
+}
+```
+
+context类中存储的变量有：isGlobal-当前是否在全局变量区。genpointer-当前是否在产生指针。breakif-当前if是否为break的if等信息。其中比较重要的属性为：module代表当前文件，curfunction代表当前所在函数，builder是llvm的一个工具类，可以指定插入的Block进行代码插入。
+
+另外context中还定义了两个系统函数：输入和输出。
+
+每个节点的CodeGen方法都需要讲context作为参数来获取上下文信息。
 
 
 
-2、区域划分节点的Code
+###### 下面将会展示每类节点的CodeGen方法的实现，在主函数中，只需要调用根节点的Codegen方法即可遍历整棵树。
+
+
+
+##### 3、区域划分节点
+
+区域划分节点的实现基本上为：按照顺序调用子节点的CodeGen方法。
+
+
+
+##### 4、定义相关类型
+
+分为函数定义和变量定义：
+
+###### 函数定义的方法为：
+
+- 根据返回类型和参数表创建函数类型
+- 根据函数类型创建函数
+- 保存上下文并将上下文切换到函数中
+- 生成参数的局部变量
+- 生成代表返回值的局部变量
+- 生成函数体
+- 返回返回值
+- 恢复上下文
+- api示例如下：
+
+```c++
+auto rettype = getLLVMtype(this->getFuncDeclNode()->getRetType(),context);
+auto func_type = llvm::FunctionType::get(rettype,llvm::makeArrayRef(para_types),false);
+auto function = llvm::Function::Create(func_type,llvm::Function::ExternalLinkage,
+        		this->getFuncDeclNode()->getFuncName(),context.module);
+```
+
+
+
+###### 变量定义的方法为：
+
+- 获取变量的Type （array或simple）
+- 检测全局或局部
+- 调用llvm的api进行声明
+- api示例如下：
+
+```c++
+	   llvm::Value * ret;
+       for(auto i=list.begin(); i!=list.end(); i++){
+            ret = new llvm::GlobalVariable(
+          		*context.module,ty,false,
+                llvm::GlobalVariable::ExternalLinkage,constant,*i
+            );
+            cout<<"create global: "<<*i<<endl;
+       }
+       return ret; 
+```
+
+
+
+###### 在变量定义的时候，根据数组和基本类型调用不同的api
+
+
+
+##### 5、语句相关类型
+
+###### 赋值语句：
+
+- 调用左子节点，获取变量指针
+- 调用右子节点，获取值
+- 判断是否需要隐式类型转换
+- 利用llvm api进行赋值
+
+```c++
+		context.builder.CreateStore(rhs,lhs);
+```
+
+
+
+###### 二元运算语句：
+
+- 调用左右节点获取左右的值
+- 判断是否需要隐式类型转换
+- 根据op值进行不同运算
+- api调用示例如下：
+
+```c++
+ 		if(op == "PLUS") 
+            return context.builder.CreateFAdd(L,R,"add");
+        else if(op=="MINUS") 
+            return context.builder.CreateFSub(L,R,"sub");
+        else if(op=="MUL") 
+            return context.builder.CreateFMul(L,R,"mul");
+```
+
+
+
+###### 单目运算语句：
+
+- 获取唯一的子节点值
+- 根据op值进行运算
+- api调用如下：
+
+```c++
+	if(op == "NOT")
+        return context.builder.CreateNot(this->getExprNode()->CodeGen(context));
+```
+
+
+
+###### 函数调用语句：
+
+- 判断是系统函数还是用户函数
+- 系统函数要将参数处理为特定格式
+- 用户函数直接调用函数调用的表达式的方法来实现
+
+```c++
+llvm::Value* FuncCallStmt::CodeGen(CodeGenContext &context){
+    cout<<"Generating FuncCallStmt..."<<endl;
+    if(this->getFuncName()=="write"||this->getFuncName()=="writeln"|| this->getFuncName()=="write10d"){
+        return SysCall(this,context);
+    }
+    else if(this->getFuncName()=="read"||this->getFuncName()=="readln"){
+        return SysCall(this,context);
+    }
+    else{
+        // user's function
+        auto Funcall = new FunCallExpr(this->getFuncName(),this->getParaExprListNode());
+        return Funcall->CodeGen(context);
+    }
+    return NULL;
+}
+```
+
+
+
+###### 循环控制语句，以For语句为例：
+
+- 将语句分为四块，分别的entry初始化，body语句体，end循环及结束判断，next下一个块
+- entry中要将循环变量赋初值并做初步判断，创建跳向body的语句
+- body插入for内部的语句
+- end将循环变量增加并且增加条件判断和跳转语句
+- 在body中要将body块放入栈中并记录break语句应该跳到的位置，即next块
+- 结束后将栈顶的块跳出，替换为next块，next块将继承栈顶块的break位置
+
+###### 其余循环控制和for大同小异，比for更加简单，不再展示，但是要注意body块一定会入栈并且记录break的位置。
+
+
+
+###### 条件控制语句：
+
+- 
+
+
+
+
+
+
+
+### 七、编译器测试
 
 ### 八、心得与体会

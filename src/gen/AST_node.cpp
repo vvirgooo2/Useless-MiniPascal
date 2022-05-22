@@ -39,7 +39,7 @@ llvm::Value* BinExpr::CodeGen(CodeGenContext &context){
         else if(op=="NE")
             return context.builder.CreateFCmpUNE(L,R,"ne_cmp");
         else
-            throw std::runtime_error("Unknown F operation");
+            throw std::runtime_error("Unknown F operation"+op);
     }
     /* GE, GT, LE, LT, EQUAL, UNEQUAL,
                 PLUS, MINUS, OR, MUL, 
@@ -124,7 +124,7 @@ llvm::Value* ArrayExpr::CodeGen(CodeGenContext &context){
     string name  = this->getArrayName();
     int start = context.getArrayRecord(name).first;
     auto sr = context.builder.getInt32(start);
-    auto trueindex = context.builder.CreateBinOp(llvm::Instruction::Sub,index,sr);
+    auto trueindex=context.builder.CreateSub(index,sr,"sub");
     auto zero = llvm::ConstantInt::get(context.builder.getInt32Ty(),0);
     if(context.genpointer)
         return context.builder.CreateInBoundsGEP(arrptr,{zero,trueindex});
@@ -360,7 +360,6 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
                 args.push_back(r);
             }
             else if(r->getType()==context.builder.getInt8PtrTy()){
-                cout<<"get a ptr"<<endl;
                 format += "%s";
                 args.push_back(r);
             }
@@ -381,7 +380,6 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
         args.insert(args.begin(), var_ref);
         auto call = context.builder.CreateCall(context.printf_func, llvm::makeArrayRef(args), "");
         return call;
-        return NULL;
     }
     else if(call->getFuncName()=="read" || call->getFuncName()=="readln"){
         cout<<"CallRead"<<endl;
@@ -455,7 +453,6 @@ llvm::Value* RepeatStmt::CodeGen(CodeGenContext &context){
     context.builder.SetInsertPoint(end);
 
     auto test = this->getConditionExprNode()->CodeGen(context);
-
     auto ret = context.builder.CreateCondBr(test,next,body);
 
     context.builder.SetInsertPoint(next);
@@ -654,7 +651,7 @@ llvm::Value* VarDecl::CodeGen(CodeGenContext &context){
                 ret = new llvm::GlobalVariable(*context.module,ty,false,llvm::GlobalVariable::ExternalLinkage,constant,*i);
                 cout<<"create global: "<<*i<<endl;
             }
-                return ret; 
+            return ret; 
         }
         else{
             //array type

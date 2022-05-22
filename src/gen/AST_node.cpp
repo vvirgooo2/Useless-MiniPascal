@@ -135,8 +135,6 @@ llvm::Value* ArrayExpr::CodeGen(CodeGenContext &context){
 
 //Need to modify 
 llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
-    cout<<this->getType()<<endl;
-    cout<<this->getImmType()<<endl;
     if(type=="Imm"){
         if(this->immtype=="bool"){
             return llvm::ConstantInt::get(context.builder.getInt1Ty(),this->getBooleanValue(),true);
@@ -508,12 +506,12 @@ llvm::Value* IfStmt::CodeGen(CodeGenContext &context){
 
     cout<<"Generating IfStmt..."<<endl;
     llvm::Value* test = this->getConditionNode()->CodeGen(context);
-    auto btrue=llvm::BasicBlock::Create(context.module->getContext(),"then",context.curfunction);
-    auto bfalse=llvm::BasicBlock::Create(context.module->getContext(),"else",context.curfunction);
+    auto blocktrue=llvm::BasicBlock::Create(context.module->getContext(),"then",context.curfunction);
+    auto blockfalse=llvm::BasicBlock::Create(context.module->getContext(),"else",context.curfunction);
     auto next=llvm::BasicBlock::Create(context.module->getContext(),"next",context.curfunction);
 
-    context.builder.CreateCondBr(test,btrue,bfalse);
-    context.builder.SetInsertPoint(btrue);
+    context.builder.CreateCondBr(test,blocktrue,blockfalse);
+    context.builder.SetInsertPoint(blocktrue);
     this->getStmtListNode()->CodeGen(context);
     if(context.breakif==false) context.builder.CreateBr(next);
     else {
@@ -521,7 +519,7 @@ llvm::Value* IfStmt::CodeGen(CodeGenContext &context){
         context.breakif=false;
     }
     
-    context.builder.SetInsertPoint(bfalse);
+    context.builder.SetInsertPoint(blockfalse);
     if(this->getElseStmtNode()!=NULL){
         cout<<"Generate Else"<<endl;
         this->getElseStmtNode()->CodeGen(context);

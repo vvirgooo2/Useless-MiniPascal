@@ -48,13 +48,16 @@
 
 
 ### 二、词法分析
-####2.1. 工具介绍
+##### 2.1. 工具介绍
+
 在这次的实验当中，我们使用flex来完成词法分析过程。flex（快速词法分析产生器，fast lexical analyzer generator）是一种词法分析程序。它是lex的开放源代码版本，以BSD许可证发布。通常与GNU bison一同运作，但是它本身不不是GNU计划的一部分。
 词法分析是将字符序列列转换为标记(token)序列列的过程。在词法分析阶段，编译器器读入源程序字符串流，将字符流转换为标记序列，同时将所需要的信息存储，然后将结果交给语法分析器。这是编译程序的第一个阶段且是必要阶段；词法分析的核心任务是扫描、识别单词且对识别出的单词给出定性、定长的处理。处理完成后，词法分析程序会生成将之前的程序文本转变为一系列token，传给之后的语法分析程序。示意图如下：
 <img src="img/122.png" width="40%" />
 标准lex文件由三部分组成，分别是定义区、规则区和⽤用户子过程区。在定义区，⽤用户可以编写C语⾔言中的声明语句，导入需要的头文件或声明变量。在规则区，用户需要编写以正则表达式和对应的动作的形式的代码。在用户子过程区，用户可以定义函数。
-####2.2 实现过程
-#####2.2.1 立即数
+
+##### 2.2 实现过程
+
+##### 2.2.1 立即数
 
 ```c++
 digit [0-9]
@@ -100,75 +103,80 @@ id ({letter}|_)+({letter}|_|{digit})*
 }
 ```
 对于integer类型，我们检测一连串的数字；对于char类型，我们检测''包裹的任何一个单个字符和\开始的转义字符，对于string类型，我们检测""包裹的一连串的字符，对于identify类型，我们检测字母和下划线开头的一连串字符。
-#####2.2.2 保留字
+
+##### 2.2.2 保留字
+
 ```c++
-"integer" { printf("%s\n",yytext);return TYPE_INT; printf("integer");}
-"real" { printf("%s\n",yytext);return TYPE_FLOAT_8;}
-"char" { printf("%s\n",yytext);return TYPE_CHAR;}
-"string" { printf("%s\n",yytext);return TYPE_STRING;}
-"array" { printf("%s\n",yytext);return ARRAY;}
-"begin" { printf("%s\n",yytext);return BEGN;}
-"break" { printf("%s\n",yytext);return BREAK;}
-"case" { printf("%s\n",yytext);return CASE;}
-"const" { printf("%s\n",yytext);return CONST;}
-"to" { printf("%s\n",yytext);return TO;}
-"do" { printf("%s\n",yytext);return DO;}
-"else" { printf("%s\n",yytext);return ELSE;}
-"end" { printf("%s\n",yytext);return END;}
-"for" { printf("%s\n",yytext);return FOR;}
-"function" { printf("%s\n",yytext);return FUNC;}
-"if" { printf("%s\n",yytext);return IF;}
-"of" { printf("%s\n",yytext);return OF;}
-"procedure" { printf("%s\n",yytext);return PROC;}
-"program" { printf("%s\n",yytext);return PROG;}
-"repeat" { printf("%s\n",yytext);return REPEAT;}
-"then" { printf("%s\n",yytext);return THEN;}
-"until" { printf("%s\n",yytext);return UNTIL;}
-"var" { printf("%s\n",yytext);return VAR;}
-"while" { printf("%s\n",yytext);return WHILE;}
+"integer" { return TYPE_INT; printf("integer");}
+"real" { return TYPE_FLOAT_8;}
+"char" { return TYPE_CHAR;}
+"string" { return TYPE_STRING;}
+"array" { return ARRAY;}
+"begin" { return BEGN;}
+"break" { return BREAK;}
+"case" {return CASE;}
+"const" { return CONST;}
+"to" { return TO;}
+"do" { return DO;}
+"else" { return ELSE;}
+"end" { return END;}
+"for" { return FOR;}
+"function" { return FUNC;}
+"if" { return IF;}
+"of" { return OF;}
+"procedure" { return PROC;}
+"program" { return PROG;}
+"repeat" { return REPEAT;}
+"then" { return THEN;}
+"until" { return UNTIL;}
+"var" { return VAR;}
+"while" { return WHILE;}
 ```
 我们实现了部分pascal关键字的检测
-#####2.2.3 运算符
+
+##### 2.2.3 运算符
+
 ```c++
-"not" { printf("%s\n",yytext);return NOT;}
-"+" { printf("%s\n",yytext);return ADD;}
-[-] { printf("%s\n",yytext);return SUB;}
-"*" { printf("%s\n",yytext);return MUL;}
-"/" { printf("%s\n",yytext);return DIV;}
-"mod" { printf("%s\n",yytext);return MOD;}
-"div" { printf("%s\n",yytext);return IDIV;}
-"=" { printf("%s\n",yytext);return EQ;}
-">" { printf("%s\n",yytext);return GRE;}
-"<" { printf("%s\n",yytext);return LES;}
-">=" { printf("%s\n",yytext);return GREQ;}
-"<=" { printf("%s\n",yytext);return LESQ;}
-"<>" { printf("%s\n",yytext);return NE;}
-"or" { printf("%s\n",yytext);return OR;}
-"and" { printf("%s\n",yytext);return AND;}
-":=" { printf("%s\n",yytext);return ASSIGN;}
-".." { printf("%s\n",yytext);return ARANGE;}
-"[" { printf("%s\n",yytext);return LBR;}
-"]" { printf("%s\n",yytext);return RBR;}
-"(" { printf("%s\n",yytext);return LPR;}
-")" { printf("%s\n",yytext);return RPR;}
-"." { printf("%s\n",yytext);return DOT;}
-"," { printf("%s\n",yytext);return COM;}
-":" { printf("%s\n",yytext);return COL;}
-";" { printf("%s\n",yytext);return SEMI;}
-"^" { printf("%s\n",yytext);return CARET;}
+"not" { ;return NOT;}
+"+" { return ADD;}
+[-] { return SUB;}
+"*" { return MUL;}
+"/" { return DIV;}
+"mod" { return MOD;}
+"div" { return IDIV;}
+"=" { return EQ;}
+">" { return GRE;}
+"<" { return LES;}
+">=" { return GREQ;}
+"<=" { return LESQ;}
+"<>" { return NE;}
+"or" { return OR;}
+"and" { return AND;}
+":=" { return ASSIGN;}
+".." { return ARANGE;}
+"[" { return LBR;}
+"]" { return RBR;}
+"(" { return LPR;}
+")" { return RPR;}
+"." { return DOT;}
+"," { return COM;}
+":" { return COL;}
+";" { return SEMI;}
+"^" { return CARET;}
 "\n" {}
 ```
 我们实现了pascal中运算符的检测。
 
 ### 三、语法分析
-####3.1 工具介绍
+#### 3.1 工具介绍
 yacc(Yet Another Compiler Compiler)，是一个经典的生成语法分析器的工具。yacc生成的编译器主要是用C语言写成的语法解析器（Parser），需要与词法解析器Lex一起使用，再把两部份产生出来的C程序一并编译。
 yacc的输入是巴科斯范式（BNF）表达的语法规则以及语法规约的处理代码，Yacc输出的是基于表驱动的编译器，包含输入的语法规约的处理代码部分。yacc是开发编译器的一个有用的工具,采用LALR(1)语法分析方法。
 与Lex相似，Yacc的输⼊入文件由以%%分割的三部分组成，分别是声明区、规则区和程序区。三部分的功能与Lex相似，不同的是规则区的正则表达式替换为CFG，在声明区要提前声明好使用到的终结符以及非终结符的类型。
 在实验中，我们使用bison来进行yacc文件的编译。
 
-####3.2 实现过程
-#####3.2.1 引入ast结点
+#### 3.2 实现过程
+##### 3.2.1 引入ast结点
+
 ```c++
 %union{
     int type_int;
@@ -211,7 +219,9 @@ yacc的输入是巴科斯范式（BNF）表达的语法规则以及语法规约�
 }
 ```
 在这里我们引入了ast文件中定义的各个结点结构，用作后面的非终结符类型定义。
-#####3.2.2 token定义
+
+##### 3.2.2 token定义
+
 ```c++
 // 数据类型定义
 %token TYPE_INT TYPE_INT_8 TYPE_INT_16 TYPE TYPE_INT_32 TYPE_INT_64 TYPE_BYTE TYPE_WORD TYPE_FLOAT_8 TYPE_FLOAT_16 TYPE_FLOAT_32 TYPE_BOOL TYPE_CHAR TYPE_STRING
@@ -220,7 +230,8 @@ yacc的输入是巴科斯范式（BNF）表达的语法规则以及语法规约�
 // 其他保留字
 %token ARRAY BEGN BREAK CASE CONST TO DO ELSE END FOR FUNC IF OF PROC PROG REPEAT THEN UNTIL VAR WHILE
 ```
-#####3.2.3 非终结符定义
+##### 3.2.3 非终结符定义
+
 ```c++
 // 数据常量
 %token<type_int> INT 
@@ -260,7 +271,9 @@ yacc的输入是巴科斯范式（BNF）表达的语法规则以及语法规约�
 %type<array_expr> array_expr;
 ```
 我们使用之前引入的ast结点来定义这些非终结符。
-#####3.2.4 分析过程
+
+##### 3.2.4 分析过程
+
 ```c++
 program:
     program program_node
@@ -619,7 +632,7 @@ VarDecl：一组变量定义
 
 ### 六、中间代码生成
 
-##### 1、基本框架与语法树遍历方法：
+##### 6.1、基本框架与语法树遍历方法：
 
 在中间代码的生成中，我们主要使用的框架是LLVM框架，使用的版本是6.0 （ubuntu apt安装）
 
@@ -647,7 +660,7 @@ llvm::Value* AssignStmt::CodeGen(CodeGenContext &context){
 
 
 
-##### 2、CodeGenContext类设计
+##### 6.2、CodeGenContext类设计
 
 LLVM的基本逻辑是，一个Module代表一个文件，一个BasicBlock代表一个代码块，所以生成代码实际上就是指定module之后，不断新建和向每个BasicBlock插入语句的过程。我们需要一个Context类来保存现在的文件信息和所在的块，以及历史块和很多的上下文信息。
 
@@ -687,13 +700,13 @@ context类中存储的变量有：isGlobal-当前是否在全局变量区。genp
 
 
 
-##### 3、区域划分节点
+##### 6.3、区域划分节点
 
 区域划分节点的实现基本上为：按照顺序调用子节点的CodeGen方法。
 
 
 
-##### 4、定义相关类型
+##### 6.4、定义相关类型
 
 分为函数定义和变量定义：
 
@@ -743,7 +756,7 @@ auto function = llvm::Function::Create(func_type,llvm::Function::ExternalLinkage
 
 
 
-##### 5、语句相关类型
+##### 6.5、语句相关类型
 
 ###### 赋值语句：
 
@@ -757,35 +770,6 @@ auto function = llvm::Function::Create(func_type,llvm::Function::ExternalLinkage
 ```
 
 
-
-###### 二元运算语句：
-
-- 调用左右节点获取左右的值
-- 判断是否需要隐式类型转换
-- 根据op值进行不同运算
-- api调用示例如下：
-
-```c++
- 		if(op == "PLUS") 
-            return context.builder.CreateFAdd(L,R,"add");
-        else if(op=="MINUS") 
-            return context.builder.CreateFSub(L,R,"sub");
-        else if(op=="MUL") 
-            return context.builder.CreateFMul(L,R,"mul");
-```
-
-
-
-###### 单目运算语句：
-
-- 获取唯一的子节点值
-- 根据op值进行运算
-- api调用如下：
-
-```c++
-	if(op == "NOT")
-        return context.builder.CreateNot(this->getExprNode()->CodeGen(context));
-```
 
 
 
@@ -830,14 +814,231 @@ llvm::Value* FuncCallStmt::CodeGen(CodeGenContext &context){
 
 ###### 条件控制语句：
 
-- 
+- 将语句分为三个代码块，blocktrue判断条件为true时的语句块,blockfalse判断条件为false时的语句块,next下一个语句块。
+- 创建一个条件跳转来控制跳转到blocktrue或者blockfalse
+- 生成两个block中的语句，两个块最后跳转到next
+
+条件控制中一个关键点是if之后的跳转有可能经过break的更改，如果连续插入两条跳转，生成的IR会出错，所以当有break的时候只能用break跳转代替原来的跳转。
 
 
 
+##### 6.6、表达式相关类型
 
+###### 二元运算表达式：
+
+- 调用左右节点获取左右的值
+- 判断是否需要隐式类型转换
+- 根据op值进行不同运算
+- api调用示例如下：
+
+```c++
+ 		if(op == "PLUS") 
+            return context.builder.CreateFAdd(L,R,"add");
+        else if(op=="MINUS") 
+            return context.builder.CreateFSub(L,R,"sub");
+        else if(op=="MUL") 
+            return context.builder.CreateFMul(L,R,"mul");
+```
+
+
+
+###### 单目运算表达式：
+
+- 获取唯一的子节点值
+- 根据op值进行运算
+- api调用如下：
+
+```c++
+	if(op == "NOT")
+        return context.builder.CreateNot(this->getExprNode()->CodeGen(context));
+```
+
+
+
+###### 函数调用表达式：
+
+- 利用module的api获得函数指针
+- 获取参数的值
+- 利用CreateCall的api调用函数
+
+```c++
+llvm::Value* FunCallExpr::CodeGen(CodeGenContext &context){
+    ......
+    auto callee = context.module->getFunction(this->getFuncName());
+    vector<llvm::Value*> args;
+    for(auto it : this->getExprListNode()->getExprList()){
+        args.push_back(it->CodeGen(context));
+    }
+    return context.builder.CreateCall(callee,args);
+}
+```
+
+函数调用语句利用函数调用表达式实现函数调用的时候，无需返回值，但是函数调用表达式一定会返回返回值。
+
+
+
+###### 数组取值表达式:
+
+- 首先获得index节点的生成值
+- 利用CreateInBoundsGEP的api取指针
+- 判断当前是否在取指针，从而返回值或指针
+
+```c++
+ if(context.genpointer)
+        return context.builder.CreateInBoundsGEP(arrptr,{zero,trueindex});
+    else 
+        return context.builder.CreateLoad(context.builder.CreateInBoundsGEP(arrptr,						{zero,trueindex}));
+```
+
+
+
+###### 立即数或变量类型的表达式：
+
+- IDExpr是语法树中叶子类型的节点，能够利用本身存储的信息返回llvm::Value类型的值。
+
+- IDExpr中存储了type属性，区分立即数和变量名
+
+- 根据属性及api返回值或指针
 
 
 
 ### 七、编译器测试
 
+##### 1、机器码生成
+
+将生成的IR输出到.ll类型的文件中，利用clang xx.ll -o result 指令生成result可执行文件
+
+
+
+##### 2、测试样例
+
+###### 快速排序：
+
+```pascal
+program quicksort;
+var
+    n,k:integer;
+    a:array[1..10002] of integer;
+    i,j,m,t:integer;
+function qsort(l,r:integer):integer;
+begin
+    i:=l;
+    j:=r;
+    m:=a[(l+r) div 2];
+    repeat
+        while (a[i]<m) do i:=i+1;
+        while (a[j]>m) do j:=j-1;
+        if( not(i>j)) then
+        begin
+        t:=a[i];
+        a[i]:=a[j];
+        a[j]:=t;
+        i:=i+1;
+        j:=j-1;
+        end;
+    until i>j;
+    if (l<j) then qsort(l,j);
+    if (i<r) then qsort(i,r);
+end;
+begin
+    read(n);
+    for k:=1 to n do
+        read(a[k]);
+    qsort(1,n);
+    for k:=1 to n do begin
+        writeln(a[k]);
+    end;
+end.
+```
+
+###### 测试结果：
+
+<img src="img/4.jpg" width="50%" />
+
+
+
+###### 矩阵乘法：
+
+```pascal
+program matrixMul;
+var
+    a, b, result : array [0 .. 1000] of integer; 
+    rowA, rowB, columnA, columnB: integer;
+    i, j, k, idx1, idx2, idx3 : integer;
+begin
+    read(rowA, columnA); 
+    for i := 0 to rowA - 1 do
+    begin
+        for j := 0 to columnA - 1 do
+        begin
+            idx1 := i * columnA + j;
+            read(a[idx1]);
+        end;
+    end;
+
+    read(rowB, columnB); 
+    for i := 0 to rowB - 1 do
+    begin
+        for j := 0 to columnB - 1 do
+        begin
+            idx1 := i * columnB + j;
+            read(b[idx1]);
+        end;
+    end;
+
+    if (columnA = rowB) then
+    begin
+        for i := 0 to rowA - 1 do
+        begin
+            for j := 0 to columnB - 1 do
+            begin
+                idx1 := i * columnB + j;
+                result[idx1] := 0;
+                for k := 0 to rowB - 1 do
+                begin
+                    idx2 := i * columnA + k;
+                    idx3 := k * columnB + j;
+                    result[idx1] := result[idx1] + (a[idx2] * b[idx3]);
+                end;
+            end;
+        end;
+
+        for i := 0 to rowA - 1 do
+        begin
+            for j := 0 to columnB - 1 do
+            begin
+                idx1 := i * columnB + j;
+                write10d(result[idx1]);
+            end;
+            writeln(""); 
+        end;
+    end;
+
+    else
+    begin
+        writeln("Incompatible Dimensions");
+    end;
+end.
+```
+
+###### 测试结果：
+
+<img src="img/5.jpg" width="50%" />
+
+
+
+###### 课程表：
+
+代码复杂不再展示
+
+###### 测试结果：
+
+<img src="img/6.jpg" width="50%" />
+
+
+
 ### 八、心得与体会
+
+本次实验中，我们花费了半个星期的时间来设计语法树结构，设计阶段花费的时间也让我们后续的工作进行的更加容易。语法树结构设计完毕后，我们三个人就可以分别去做三部分工作。
+
+在中间代码的生成中，一个最大的难点就是LLVM api的使用，英文文档晦涩难懂，难以阅读，我们找到了很多关于IR生成的博客，和一个gnu.org提供的toy complier样例，从而学会了IR生成的基本流程和方法。在具体的api调用中，多使用vscode的转到定义方法查看llvm的源代码，源代码中的注释和变量名比文档中写的清楚很多。

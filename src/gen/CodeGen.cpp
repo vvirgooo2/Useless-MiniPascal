@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 using namespace std;
+//
 void CodeGenContext::regis(){
     vector<llvm::Type *> argtypes;
     argtypes.push_back(llvm::Type::getInt8PtrTy(this->globalcontext));
@@ -33,6 +34,8 @@ void CodeGenContext::generate(BaseNode* root){
     llvm::FunctionType *ftype = llvm::FunctionType::get(this->builder.getInt32Ty(),false); 
     this->mainFunction = llvm::Function::Create(ftype,llvm::Function::ExternalLinkage,"main",this->module);
     this->curfunction = mainFunction;
+    this->FuncStack.push_back(mainFunction);
+    
     llvm::BasicBlock* block = llvm::BasicBlock::Create(this->module->getContext(),"entry",mainFunction);
     this->builder.SetInsertPoint(block);
     pushBlock(block);
@@ -42,16 +45,9 @@ void CodeGenContext::generate(BaseNode* root){
     this->builder.SetInsertPoint(block); //reset insert point
     cout<<"Global Exec:"<<endl;
     r->getExecPartNode()->CodeGen(*this);
-  
     this->builder.CreateRet(this->builder.getInt32(0));
-    
-
+    this->FuncStack.pop_back();
 }
-
-llvm::GenericValue CodeGenContext::runCode(){
-    
-}
-
 // int main(){
 //     //VarDeclList
 //     VarDeclList* vdl = new VarDeclList();

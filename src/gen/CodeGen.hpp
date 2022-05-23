@@ -32,32 +32,30 @@ class Program;
 class BaseNode;
 class CodeGenBlock;
 class CodeGenContext;
-//一个局部环境
+//loop stack 存嵌套循环
 class CodeGenBlock{
 public:
     //一个IR单元
     llvm::BasicBlock* block;
-    //变量池
-    std::map<std::string,llvm::Value*> locals;
     llvm::BasicBlock* Breakto=NULL;
+    llvm::BasicBlock* Continto=NULL;
 };
 
 class CodeGenContext{
 private:
-    std::vector<CodeGenBlock *> blocks;
-    //主函数
     std::map<std::string,pair<int,int>> arrayrecord;
 public:
-    
     bool isGlobal=true;
     bool genpointer=false;
     bool breakif=false;
+    bool continif=false;
     llvm::Module *module;
     llvm::IRBuilder<> builder;
     llvm::Function *mainFunction;
     llvm::LLVMContext globalcontext;
     llvm::Function *curfunction;
-
+    std::vector<llvm::Function*> FuncStack;
+    std::vector<CodeGenBlock *> BlockStack;
     //system function
     llvm::Function *printf_func;
     llvm::Function *scanf_func;
@@ -67,49 +65,68 @@ public:
         regis();
     }
     void generate(BaseNode* root);
-    llvm::GenericValue runCode();
-    std::map<std::string,llvm::Value*>& locals(){
-        return blocks.back()->locals;
-    }
-    llvm::BasicBlock* currentBlock(){
-        return blocks.back()->block;
-    }
+    void regis();
     CodeGenBlock* getTopBlock(){
-        return blocks.back();
+        return BlockStack.back();
     }
+
     void pushCodeGenBlock(CodeGenBlock* block){
-        blocks.push_back(block);
+        BlockStack.push_back(block);
     }
-    void pushBlock(llvm::BasicBlock *block,llvm::BasicBlock* breakto = NULL){
-        blocks.push_back(new CodeGenBlock());
-        blocks.back()->block = block;
-        blocks.back()->Breakto = breakto;
+
+    void pushBlock(llvm::BasicBlock *block,llvm::BasicBlock* breakto = NULL,llvm::BasicBlock* cont = NULL){
+        BlockStack.push_back(new CodeGenBlock());
+        BlockStack.back()->block = block;
+        BlockStack.back()->Breakto = breakto;
+        BlockStack.back()->Continto = cont;
     }
+
     void popBLock(){
-        CodeGenBlock *top=blocks.back();
-        blocks.pop_back();
+        CodeGenBlock *top=BlockStack.back();
+        BlockStack.pop_back();
         delete top;
     }
+
     llvm::Value* getValue(string name){
-        llvm::Function *c = this->curfunction;
-        if ((c->getValueSymbolTable()->lookup(name)) == NULL){
-            if (module->getGlobalVariable(name) == NULL){
-                throw std::runtime_error("Undeclared variable: "+name+" in module");
-                return NULL;
+        for(auto it=FuncStack.rbegin();it!=FuncStack.rend();++it){
+            if((*it)->getValueSymbolTable()->lookup(name)){
+                return (*it)->getValueSymbolTable()->lookup(name);
             }
+        }
+        if(module->getGlobalVariable(name)){
             return module->getGlobalVariable(name);
         }
-        return c->getValueSymbolTable()->lookup(name);
+        else throw std::runtime_error("Undeclared Variable: "+name);
     }
-    void regis();
+
     void setArrayRecord(string name, int s, int e){
         this->arrayrecord[name]=make_pair(s,e);
     }
-    pair<int,int> getArrayRecord(string name){
+
+    std::pair<int,int> getArrayRecord(string name){
+        //local
+        for(auto it=FuncStack.rbegin();it!=FuncStack.rend();++it){
+            string funcname=(*it)->getName();
+            if(arrayrecord.find(funcname+"/"+name)!=arrayrecord.end()){
+                return arrayrecord[funcname+"/"+name];
+            }
+        }
+        //global
         if(arrayrecord.find(name)!=arrayrecord.end()){
             return arrayrecord[name];
         }
         else throw std::runtime_error("ArrayRecord not found: "+name);
     }
+
+    void ReplaceTopBlock(llvm::BasicBlock *next){
+        auto oldtop = getTopBlock();
+        auto nextBlock = new CodeGenBlock();
+        nextBlock->block = next;
+        nextBlock->Breakto=oldtop->Breakto;
+        nextBlock->Continto=oldtop->Continto;
+        popBLock();
+        pushCodeGenBlock(nextBlock);
+    }
+    
 };
 

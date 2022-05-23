@@ -5,87 +5,45 @@ llvm::Value* BinExpr::CodeGen(CodeGenContext &context){
     cout<<"Generating BinExpr..."<<endl;
     llvm::Value *L = lhs->CodeGen(context);
     llvm::Value *R = rhs->CodeGen(context);
-    if(L==NULL||R==NULL) throw runtime_error("NULL");
-
+    if(L==NULL) throw std::runtime_error("Left Expr Generate Error!");
+    if(R==NULL) throw std::runtime_error("Right Expr Generate Error!");
     if(L->getType()->isDoubleTy() || R->getType()->isDoubleTy()){
         if(!L->getType()->isDoubleTy()){
             L = context.builder.CreateSIToFP(L,context.builder.getDoubleTy());
         }
         if(!R->getType()->isDoubleTy()){
-            R = context.builder.CreateUIToFP(R,context.builder.getDoubleTy());
+            R = context.builder.CreateSIToFP(R,context.builder.getDoubleTy());
         }
-        if(op == "PLUS") 
-            return context.builder.CreateFAdd(L,R,"add");
-        else if(op=="MINUS") 
-            return context.builder.CreateFSub(L,R,"sub");
-        else if(op=="MUL") 
-            return context.builder.CreateFMul(L,R,"mul");
-        else if(op=="MOD")
-            return context.builder.CreateFRem(L,R,"mod");
-        else if(op=="DIV"){
-            cout<<"REALDIV"<<endl;
-            return context.builder.CreateFDiv(L,R,"div");
-        }
-        else if(op=="LT")
-            return context.builder.CreateFCmpULT(L,R,"lt_cmp");
-        else if(op=="GT")
-            return context.builder.CreateFCmpUGT(L,R,"gt_cmp");
-        else if(op=="LE")
-            return context.builder.CreateFCmpULE(L,R,"le_cmp");
-        else if(op=="GE")
-            return context.builder.CreateFCmpUGE(L,R,"ge_cmp");
-        else if(op=="EQUAL")
-            return context.builder.CreateFCmpUEQ(L,R,"eq_cmp");
-        else if(op=="NE")
-            return context.builder.CreateFCmpUNE(L,R,"ne_cmp");
-        else
-            throw std::runtime_error("Unknown F operation"+op);
+        if(op == "PLUS")     return context.builder.CreateFAdd(L,R,"add");
+        else if(op=="MINUS") return context.builder.CreateFSub(L,R,"sub");
+        else if(op=="MUL")   return context.builder.CreateFMul(L,R,"mul");
+        else if(op=="DIV")   return context.builder.CreateFDiv(L,R,"div");
+        else if(op=="MOD")   return context.builder.CreateFRem(L,R,"mod");
+        else if(op=="LT")    return context.builder.CreateFCmpULT(L,R,"lt");
+        else if(op=="GT")    return context.builder.CreateFCmpUGT(L,R,"gt");
+        else if(op=="LE")    return context.builder.CreateFCmpULE(L,R,"le");
+        else if(op=="GE")    return context.builder.CreateFCmpUGE(L,R,"ge");
+        else if(op=="EQUAL") return context.builder.CreateFCmpUEQ(L,R,"eq");
+        else if(op=="NE")    return context.builder.CreateFCmpUNE(L,R,"ne");
+        else throw std::runtime_error("Unknown Float operation: "+op);
     }
-    /* GE, GT, LE, LT, EQUAL, UNEQUAL,
-                PLUS, MINUS, OR, MUL, 
-                DIV, MOD, AND*/
-
-    if(op == "PLUS"){
-        auto r= context.builder.CreateAdd(L,R,"add");
-        return r;
-    } 
-        
-    else if(op=="MINUS") 
-        return context.builder.CreateSub(L,R,"sub");
-    else if(op=="MUL") 
-        return context.builder.CreateMul(L,R,"mul");
-    else if(op=="MOD")
-        return context.builder.CreateSRem(L,R,"mod");
-    else if(op=="DIV"){
-        auto r= context.builder.CreateSDiv(L,R,"div");
-        cout<<"INTDIV"<<endl;
-        
-        return r;
+    else{
+        if(op == "PLUS")     return context.builder.CreateAdd(L,R,"add");
+        else if(op=="MINUS") return context.builder.CreateSub(L,R,"sub");
+        else if(op=="MUL")   return context.builder.CreateMul(L,R,"mul");
+        else if(op=="DIV")   return context.builder.CreateSDiv(L,R,"div");
+        else if(op=="MOD")   return context.builder.CreateSRem(L,R,"mod");
+        else if(op=="LT")    return context.builder.CreateICmpSLT(L,R,"lt");
+        else if(op=="GT")    return context.builder.CreateICmpSGT(L,R,"gt");
+        else if(op=="LE")    return context.builder.CreateICmpSLE(L,R,"le");
+        else if(op=="GE")    return context.builder.CreateICmpSGE(L,R,"ge");
+        else if(op=="EQUAL") return context.builder.CreateICmpEQ(L,R,"eq");
+        else if(op=="NE")    return context.builder.CreateICmpNE(L,R,"ne");
+        else if(op=="AND")   return context.builder.CreateAnd(L,R,"and");
+        else if(op=="OR")    return context.builder.CreateOr(L,R,"or");
+        else if(op=="XOR")   return context.builder.CreateXor(L,R,"xor");
+        else throw std::runtime_error("Unknown I operation: "+op);
     }
-    else if(op=="NE"){
-        return context.builder.CreateICmpNE(L,R,"ne_cmp");
-    }
-    else if(op=="LT")
-        return context.builder.CreateICmpSLT(L,R,"lt_cmp");
-    else if(op=="GT")
-        return context.builder.CreateICmpSGT(L,R,"gt_cmp");
-    else if(op=="LE")
-        return context.builder.CreateICmpSLE(L,R,"le_cmp");
-    else if(op=="GE")
-        return context.builder.CreateICmpSGE(L,R,"ge_cmp");
-    else if(op=="EQUAL")
-        return context.builder.CreateICmpEQ(L,R,"eq_cmp");
-    else if(op=="UNEQUAL")
-        return context.builder.CreateICmpNE(L,R,"ne_cmp");
-    else if(op=="AND")
-        return context.builder.CreateAnd(L,R,"and");
-    else if(op=="OR")
-        return context.builder.CreateOr(L,R,"or");
-    else if(op=="XOR")
-        return context.builder.CreateXor(L,R,"xor");
-    else
-        throw std::runtime_error("Unknown I operation: "+op);
-    
     return NULL;
 }
 
@@ -93,16 +51,16 @@ llvm::Value* UnaryExpr::CodeGen(CodeGenContext &context){
     cout<<"Generating Unary"<<endl;
     if(op == "NOT")
         return context.builder.CreateNot(this->getExprNode()->CodeGen(context));
-    else if(op == "NOT")
-        return context.builder.CreateNot(this->getExprNode()->CodeGen(context));
-        throw std::runtime_error("Unknown Unary operation");
+    else if(op == "SUB")
+        return context.builder.CreateNeg(this->getExprNode()->CodeGen(context));
+    else throw std::runtime_error("Unknown Unary operation: "+ op);
     return NULL;
 }
 
 llvm::Value* FunCallExpr::CodeGen(CodeGenContext &context){
     cout<<"CodeGen FuncallExpression..."<<endl;
     auto callee = context.module->getFunction(this->getFuncName());
-    if(callee==nullptr){
+    if(callee==NULL){
         throw std::runtime_error("No Function called: "+this->getFuncName());
     }
     vector<llvm::Value*> args;
@@ -113,34 +71,36 @@ llvm::Value* FunCallExpr::CodeGen(CodeGenContext &context){
 }
 
 llvm::Value* ArrayExpr::CodeGen(CodeGenContext &context){
+    // get index
     bool ptr = context.genpointer;
-    //get index
     context.genpointer=false;
     auto index = this->getIndexExprNode()->CodeGen(context);
     context.genpointer=ptr;
-    cout<<"Got Index"<<endl;
+
+    // get record
     auto arrptr = context.getValue(this->getArrayName());
     string funcname = context.curfunction->getName();
-    string name  = this->getArrayName();
-    int start = context.getArrayRecord(name).first;
+    string arrayname  = this->getArrayName();
+    int start = context.getArrayRecord(arrayname).first;
+
+    // get true index 
     auto sr = context.builder.getInt32(start);
     auto trueindex=context.builder.CreateSub(index,sr,"sub");
     auto zero = llvm::ConstantInt::get(context.builder.getInt32Ty(),0);
+
+    //return 
     if(context.genpointer)
         return context.builder.CreateInBoundsGEP(arrptr,{zero,trueindex});
     else 
         return context.builder.CreateLoad(context.builder.CreateInBoundsGEP(arrptr,{zero,trueindex}));
-    return NULL;
 }
 
-//Need to modify 
 llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
     if(type=="Imm"){
         if(this->immtype=="bool"){
             return llvm::ConstantInt::get(context.builder.getInt1Ty(),this->getBooleanValue(),true);
         }
         else if(this->immtype=="integer"){
-            cout<<"Got integer value "<<this->getIntValue()<<endl;
             return llvm::ConstantInt::get(context.builder.getInt32Ty(),this->getIntValue(),true);
         }
         else if(this->immtype=="longint"){
@@ -160,18 +120,15 @@ llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
             );
             auto gp = context.module->getGlobalVariable((string)tempglobal->getName());
             llvm::Value *zero = llvm::ConstantInt::get(context.builder.getInt32Ty(),0);
-            auto r =context.builder.CreateInBoundsGEP(gp, {zero, zero});
-            return r;
+            return context.builder.CreateInBoundsGEP(gp, {zero, zero});
         }
-        else throw std::runtime_error("Unknown constant");
+        else throw std::runtime_error("Unknown constant type: "+this->getType());
     }
     else if(type=="var"){
-        //char array to do
         if(context.genpointer==false) return context.builder.CreateLoad(context.getValue(this->getVarName()));
         else return context.getValue(this->getVarName());
     }
-    else throw runtime_error("Unknown type for IDEXPR");
-    return NULL;
+    else throw runtime_error("Unknown type for IDEXPR: "+type);
 }
 
 
@@ -191,6 +148,11 @@ llvm::Value* FuncDeclList::CodeGen(CodeGenContext &context){
 }
 
 llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
+    //check
+    if(context.module->getFunction(this->getFuncDeclNode()->getFuncName())){
+        throw std::runtime_error("ReDefination of function: "+this->getFuncDeclNode()->getFuncName());
+    }
+    
     //create function
     cout<<"Generating OneFuncDecl "+ this->getFuncDeclNode()->getFuncName()<<endl;
     vector<llvm::Type *> para_types;
@@ -200,9 +162,9 @@ llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
         vector<string> ids = onedecl->getIDListNode()->getList();
         MyType* type = onedecl->getTypeNode();
         if(type->getClass()=="arraytype")
-            throw runtime_error("Unspport array type parameters");
+            throw runtime_error("Unspport array type parameters.");
         llvm::Type *llvmty = getLLVMtype(type,context);
-        for(int i=0;i<ids.size();i++){
+        for(uint32_t i=0;i<ids.size();i++){
             para_types.push_back(llvmty);
         }
     }
@@ -211,15 +173,14 @@ llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
     llvm::Function *function = llvm::Function::Create(func_type,llvm::Function::ExternalLinkage,
         this->getFuncDeclNode()->getFuncName(),context.module);
     
-    if(function->getName() != this->getFuncDeclNode()->getFuncName()){
-        throw std::runtime_error("ReDefination of function");
-    }
+    //generate
     llvm::BasicBlock* entry = llvm::BasicBlock::Create(context.module->getContext(),"entry",function);
-    auto old_function = context.curfunction;
     context.curfunction = function;
-    auto  old_block = context.currentBlock();
+    auto  old_block = context.builder.GetInsertBlock();
+    context.FuncStack.push_back(function);
     context.pushBlock(entry);
     context.builder.SetInsertPoint(entry);
+    
     //initial para
     llvm::Value *para_values;
     auto valueiter = function->arg_begin();
@@ -233,7 +194,8 @@ llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
             context.builder.CreateStore(para_values,context.getValue(id));
         }
     }
-    //return value
+
+    //alloca return value
     auto r = context.builder.CreateAlloca(rettype,0,function->getName());
     if(rettype->isIntegerTy())
         context.builder.CreateStore(context.builder.getInt32(0),r);
@@ -244,14 +206,14 @@ llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
     this->getFuncBodyNode()->CodeGen(context);
 
     //return
-    llvm::Value* result = context.builder.CreateLoad(r,false,"");
-    context.builder.CreateRet(result);
+    context.builder.CreateRet(context.builder.CreateLoad(r,false,""));
 
-    while(context.currentBlock()!=old_block)
+    //return context
+    while(context.BlockStack.back()->block!=old_block)
         context.popBLock();
-    
     context.builder.SetInsertPoint(old_block);
-    context.curfunction = old_function;
+    context.FuncStack.pop_back();
+    context.curfunction = context.FuncStack.back();
     return NULL;
 }
 
@@ -270,7 +232,7 @@ llvm::Value* ExecPart::CodeGen(CodeGenContext &context){
 llvm::Value* StmtList::CodeGen(CodeGenContext &context){
     auto list = this->getStmtList();
     for(auto stmt: list){
-        auto ret = stmt->CodeGen(context);
+        stmt->CodeGen(context);
     }
     return NULL;
 }
@@ -296,46 +258,6 @@ llvm::Value* AssignStmt::CodeGen(CodeGenContext &context){
     return rhs;
 }
 
-llvm::Value* ForStmt::CodeGen(CodeGenContext &context){
-    cout<<"Generating ForStmt..."<<endl;
-    auto entry = llvm::BasicBlock::Create(context.builder.getContext(),"forentry",context.curfunction);
-    auto body = llvm::BasicBlock::Create(context.builder.getContext(),"forbody",context.curfunction);
-    auto end  = llvm::BasicBlock::Create(context.builder.getContext(),"forend",context.curfunction);
-    auto next = llvm::BasicBlock::Create(context.builder.getContext(),"next",context.curfunction);
-
-    context.builder.CreateBr(entry);
-    context.builder.SetInsertPoint(entry);
-    auto loopvar =new IDExpr("var",(string)this->var); 
-    auto init_assign = new AssignStmt(loopvar,this->getStartExprNode());
-    init_assign->CodeGen(context);
-    auto testGT = new BinExpr("GT",loopvar,this->endexpr);
-    context.builder.CreateCondBr(testGT->CodeGen(context),next,body);
-
-    context.builder.SetInsertPoint(body);
-    context.pushBlock(body,next);
-    this->getLoopStmtNode()->CodeGen(context);
-    context.builder.CreateBr(end);
-    context.popBLock();
-
-    context.builder.SetInsertPoint(end);
-    auto int1 = new IDExpr("Imm",1);
-    auto addstmt = new BinExpr("PLUS",loopvar,int1);
-    auto as = new AssignStmt(loopvar,addstmt);
-    as->CodeGen(context);
-    auto testGE = new BinExpr("GT",loopvar,this->endexpr);
-    auto test = testGE->CodeGen(context);
-    auto ret = context.builder.CreateCondBr(test,next,body);
-
-    auto oldtop = context.getTopBlock();
-    auto nextBlock = new CodeGenBlock();
-    nextBlock->locals = oldtop->locals;
-    nextBlock->block = next;
-    nextBlock->Breakto=oldtop->Breakto;
-    context.popBLock();
-    context.pushCodeGenBlock(nextBlock);
-    context.builder.SetInsertPoint(next);
-    return ret;
-}
 
 llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
     if(call->getFuncName()=="write"||call->getFuncName()=="writeln"||call->getFuncName()=="write10d"){
@@ -435,6 +357,40 @@ llvm::Value* FuncCallStmt::CodeGen(CodeGenContext &context){
     }
     return NULL;
 }
+llvm::Value* ForStmt::CodeGen(CodeGenContext &context){
+    cout<<"Generating ForStmt..."<<endl;
+    auto entry = llvm::BasicBlock::Create(context.builder.getContext(),"forentry",context.curfunction);
+    auto body = llvm::BasicBlock::Create(context.builder.getContext(),"forbody",context.curfunction);
+    auto end  = llvm::BasicBlock::Create(context.builder.getContext(),"forend",context.curfunction);
+    auto next = llvm::BasicBlock::Create(context.builder.getContext(),"next",context.curfunction);
+
+    context.builder.CreateBr(entry);
+    context.builder.SetInsertPoint(entry);
+    auto loopvar =new IDExpr("var",(string)this->var); 
+    auto init_assign = new AssignStmt(loopvar,this->getStartExprNode());
+    init_assign->CodeGen(context);
+    auto testGT = new BinExpr("GT",loopvar,this->endexpr);
+    context.builder.CreateCondBr(testGT->CodeGen(context),next,body);
+
+    context.builder.SetInsertPoint(body);
+    context.pushBlock(body,next,end);
+    this->getLoopStmtNode()->CodeGen(context);
+    context.builder.CreateBr(end);
+    context.popBLock();
+
+    context.builder.SetInsertPoint(end);
+    auto int1 = new IDExpr("Imm",1);
+    auto addstmt = new BinExpr("PLUS",loopvar,int1);
+    auto as = new AssignStmt(loopvar,addstmt);
+    as->CodeGen(context);
+    auto testGE = new BinExpr("GT",loopvar,this->endexpr);
+    auto test = testGE->CodeGen(context);
+    auto ret = context.builder.CreateCondBr(test,next,body);
+    
+    context.builder.SetInsertPoint(next);
+    context.ReplaceTopBlock(next);
+    return ret;
+}
 
 llvm::Value* RepeatStmt::CodeGen(CodeGenContext &context){
     cout<<"Generating RepeatStmt...."<<endl;
@@ -443,7 +399,7 @@ llvm::Value* RepeatStmt::CodeGen(CodeGenContext &context){
     auto next = llvm::BasicBlock::Create(context.module->getContext(),"next",context.curfunction);
     context.builder.CreateBr(body);
     context.builder.SetInsertPoint(body);
-    context.pushBlock(body,next);
+    context.pushBlock(body,next,end);
     this->getLoopStmtNode()->CodeGen(context);
     context.builder.CreateBr(end);
     context.popBLock();
@@ -454,15 +410,7 @@ llvm::Value* RepeatStmt::CodeGen(CodeGenContext &context){
     auto ret = context.builder.CreateCondBr(test,next,body);
 
     context.builder.SetInsertPoint(next);
-    //next replace top block
-    auto oldtop = context.getTopBlock();
-    auto nextBlock = new CodeGenBlock();
-    nextBlock->locals = oldtop->locals;
-    nextBlock->block = next;
-    nextBlock->Breakto=oldtop->Breakto;
-    context.popBLock();
-    context.pushCodeGenBlock(nextBlock);
-    
+    context.ReplaceTopBlock(next);
     return ret;
 }
 
@@ -478,28 +426,20 @@ llvm::Value* WhileStmt::CodeGen(CodeGenContext &context){
     auto ret = context.builder.CreateCondBr(condition,loop,next);
 
     context.builder.SetInsertPoint(loop);
-    context.pushBlock(loop,next);
+    context.pushBlock(loop,next,wb);
     this->getStmtListNode()->CodeGen(context);
     context.builder.CreateBr(wb);
     context.popBLock();
 
     context.builder.SetInsertPoint(next);
-    
-    //next replace top block
-    auto oldtop = context.getTopBlock();
-    auto nextBlock = new CodeGenBlock();
-    nextBlock->locals = oldtop->locals;
-    nextBlock->block = next;
-    nextBlock->Breakto=oldtop->Breakto;
-    context.popBLock();
-    context.pushCodeGenBlock(nextBlock);
-    
+    context.ReplaceTopBlock(next);
     return ret;
 }
 
 llvm::Value* ElseStmt::CodeGen(CodeGenContext &context){
     if(this->getStmtListNode()!=NULL)
         return this->getStmtListNode()->CodeGen(context);
+    else return NULL;
 }
 
 llvm::Value* IfStmt::CodeGen(CodeGenContext &context){
@@ -529,23 +469,13 @@ llvm::Value* IfStmt::CodeGen(CodeGenContext &context){
     context.builder.SetInsertPoint(next);
     
     //next replace top block
-    auto oldtop = context.getTopBlock();
-    auto nextBlock = new CodeGenBlock();
-    nextBlock->locals = oldtop->locals;
-    nextBlock->block = next;
-    nextBlock->Breakto=oldtop->Breakto;
-    context.popBLock();
-    context.pushCodeGenBlock(nextBlock);
-    
-
-
+    context.ReplaceTopBlock(next);
     return NULL;
 }
 
 llvm::Value* BreakStmt::CodeGen(CodeGenContext &context){
     if(context.getTopBlock()->Breakto==NULL)
-        throw std::runtime_error("BreakStmt not in any loop body");
-   
+        throw std::runtime_error("BreakStmt not in Any loop body");
     context.breakif=true;
     return NULL;
 }
@@ -569,7 +499,7 @@ llvm::Value* createArray(CodeGenContext &context, MyType* typenode,vector<string
     string funcname  = context.curfunction->getName();
     for(string it:namelist){
         context.builder.CreateAlloca(llvm::ArrayType::get(simpletype,len),NULL,it);
-        context.setArrayRecord(it,node->getIndexArrage().first,node->getIndexArrage().second);
+        context.setArrayRecord(funcname+"/"+it,node->getIndexArrage().first,node->getIndexArrage().second);
     }
     return NULL;
 }
@@ -584,7 +514,7 @@ llvm::Value* createGlobalArray(CodeGenContext &context, MyType* typenode,vector<
         init = llvm::ConstantInt::get(simpletype,0);
     else if(simpletype->isDoubleTy())
         init = llvm::ConstantFP::get(simpletype,0.0);
-    else throw std::runtime_error("Unknown ArrayElementType:"+name);
+    else throw std::runtime_error("Unknown ArrayElementType: "+name);
     std::vector<llvm::Constant*> initv;
     for(int i=0;i<len;i++)
         initv.push_back(init);
@@ -695,9 +625,6 @@ llvm::Value* ArrayType::CodeGen(CodeGenContext &context){
 llvm::Value* Program::CodeGen(CodeGenContext &context){
     return NULL;
 }
-
-
-
 
 llvm::Value* ParaList::CodeGen(CodeGenContext &context){
     return NULL;

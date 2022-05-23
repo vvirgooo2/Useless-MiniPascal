@@ -1,18 +1,16 @@
 %define parse.error verbose
-%locations
 %{
     #include <stdio.h>
     #include <string.h>
+    #include <string>
     #include "../ast/AST_node.h"
     #include "../main.h"
     extern int yylex();
     extern FILE* yyin;
     void yyerror(const char* s);
-    #define setl(node) ((node)->set_last_line(yylloc.first_line))
 %}
 
 %union{
-    int location;
     int type_int;
     float type_float;
     char type_char;
@@ -102,54 +100,51 @@ program:
 
 program_node:
     prog_head decl_part exec_part DOT { 
-        ast_root = new Program($1, $2, $3);
-        setl(ast_root);
+        ast_root = new Program($1, $2, $3); 
     }
 ;
 
 prog_head:
-    PROG ID SEMI { $$ = new ProgHead($2); setl($$);}
+    PROG ID SEMI { $$ = new ProgHead($2); }
 ;
 
 decl_part:
     VAR var_list func_list { 
         $$ = new DeclPart($2, $3); 
-        setl($$);
     }
     |
-    { $$ = new DeclPart();setl($$);}
+    { $$ = new DeclPart(); }
 ;
 
 var_list:
     var_list var_node SEMI
 { $$ = $1;
-  $$->pushVarDecl($2); setl($$);}
+  $$->pushVarDecl($2); }
     | 
-{ $$ = new VarDeclList(); setl($$);}
+{ $$ = new VarDeclList(); }
 ;
 
 var_node:
     id_list COL simple_type{
         $$ = new VarDecl($3, $1); 
-        setl($$);
     }
     | id_list COL ARRAY LBR INT ARANGE INT RBR OF simple_type{
         ArrayType* ary = new ArrayType($5, $7, $10->getSimpleTypeName()); 
-        $$ = new VarDecl(ary, $1); setl($$);
+        $$ = new VarDecl(ary, $1);
     }
 ;
 
 simple_type:
     TYPE_INT
-{ $$ = new SimpleType("integer"); setl($$);}
+{ $$ = new SimpleType("integer"); }
     | TYPE_FLOAT_8
-{ $$ = new SimpleType("real"); setl($$);}
+{ $$ = new SimpleType("real"); }
     | TYPE_FLOAT_32
-{ $$ = new SimpleType("real"); setl($$);}
+{ $$ = new SimpleType("real"); }
     | TYPE_CHAR
-{ $$ = new SimpleType("char"); setl($$);}
+{ $$ = new SimpleType("char"); }
     | TYPE_STRING
-{ $$ = new SimpleType("string"); setl($$);}
+{ $$ = new SimpleType("string"); }
 ;
 
 id_list:
@@ -157,7 +152,7 @@ id_list:
 { $$ = $1;
   $$->pushID((string)$3); }
     | ID
-{ $$ = new IDList(); setl($$);
+{ $$ = new IDList(); 
   $$->pushID((string)$1); }
 ;
 
@@ -166,17 +161,17 @@ func_list:
 { $$ = $1;
   $$->pushOneFuncDecl($2); }
     | 
-{ $$ = new FuncDeclList(); setl($$);}
+{ $$ = new FuncDeclList(); }
 ;
 
 func_node:
     func_head SEMI func_body SEMI
-{ $$ = new OneFuncDecl($1, $3); setl($$);}
+{ $$ = new OneFuncDecl($1, $3); }
 ;
 
 func_head:
     FUNC ID LPR para_node RPR COL simple_type { 
-        $$ = new FuncHead((string)$2, $7, $4); setl($$);
+        $$ = new FuncHead((string)$2, $7, $4); 
     }
 ;
 
@@ -185,18 +180,18 @@ para_node:
 { $$ = $1;
   $$->pushNewPara($3); }
     | var_node
-{ $$ = new ParaList($1); setl($$);}
+{ $$ = new ParaList($1); }
 ;
 
 func_body:
     var_list exec_part {
-        $$ = new FuncBody($1, $2); setl($$);
+        $$ = new FuncBody($1, $2); 
     }
 ;
 
 exec_part:
     BEGN stmt_list END { 
-        $$ = new ExecPart($2);setl($$);
+        $$ = new ExecPart($2);
     }
 ;
 
@@ -206,7 +201,7 @@ stmt_list:
         $$->pushStmt($2); 
     }
     | stmt_node
-{ $$ = new StmtList($1); setl($$);}
+{ $$ = new StmtList($1); }
 ;
 
 stmt_node:
@@ -228,10 +223,10 @@ stmt_node:
 
 assign_node:
     ID ASSIGN expr_node SEMI
-{ IDExpr* id = new IDExpr("var", (string)$1); setl($$);
+{ IDExpr* id = new IDExpr("var", (string)$1); 
   $$ = new AssignStmt(id, $3); }
     | array_expr ASSIGN expr_node SEMI
-{ $$ = new AssignStmt($1, $3); setl($$);}
+{ $$ = new AssignStmt($1, $3); }
 ;
 
 expr_list:
@@ -239,72 +234,73 @@ expr_list:
 { $$ = $1;
   $$->pushExprNode($3); }
     | expr_node
-{ $$ = new ExprList($1); setl($$);}
+{ $$ = new ExprList($1); }
 ;
 
 id_expr:
     ID
-{ $$ = new IDExpr("var", (string)$1); setl($$);}
+{ $$ = new IDExpr("var", (string)$1); }
     | INT
-{ $$ = new IDExpr("Imm", (int)$1); setl($$);}
+{ $$ = new IDExpr("Imm", (int)$1); }
     | CHAR
-{ $$ = new IDExpr("Imm", (char)$1); setl($$);}
+{ $$ = new IDExpr("Imm", (char)$1); }
     | FLOAT
-{ $$ = new IDExpr("Imm", (double)$1); setl($$);}
+{ $$ = new IDExpr("Imm", (double)$1); }
     | STRING
-{ $$ = new IDExpr("Imm", (string)$1); setl($$);}
+{  string temp($1);
+   $$ = new IDExpr("Imm", temp.substr(1,temp.length()-2)); }
 ;
 
 expr_node:
     expr_node GRE first_bin_expr
-{ $$ = new BinExpr("GT", $1, $3); setl($$);}
+{ $$ = new BinExpr("GT", $1, $3); }
     | expr_node LES first_bin_expr
-{ $$ = new BinExpr("LT", $1, $3); setl($$);}
+{ $$ = new BinExpr("LT", $1, $3); }
     | expr_node EQ first_bin_expr
-{ $$ = new BinExpr("EQUAL", $1, $3); setl($$);}
+{ $$ = new BinExpr("EQUAL", $1, $3); }
     | expr_node GREQ first_bin_expr
-{ $$ = new BinExpr("GE", $1, $3); setl($$);}
+{ $$ = new BinExpr("GE", $1, $3); }
     | expr_node LESQ first_bin_expr
-{ $$ = new BinExpr("LE", $1, $3); setl($$);}
+{ $$ = new BinExpr("LE", $1, $3); }
     | expr_node NE first_bin_expr
-{ $$ = new BinExpr("NE", $1, $3); setl($$);}
+{ $$ = new BinExpr("NE", $1, $3); }
     | first_bin_expr
 { $$ = $1; }
 ;
 
 first_bin_expr:
     first_bin_expr ADD second_bin_expr
-{ $$ = new BinExpr("PLUS", $1, $3); setl($$);}
+{ $$ = new BinExpr("PLUS", $1, $3); }
     | first_bin_expr SUB second_bin_expr
-{ $$ = new BinExpr("MINUS", $1, $3); setl($$);}
+{ $$ = new BinExpr("MINUS", $1, $3); }
     | first_bin_expr OR second_bin_expr
-{ $$ = new BinExpr("OR", $1, $3); setl($$);}
+{ $$ = new BinExpr("OR", $1, $3); }
     | second_bin_expr
 { $$ = $1; }
 ;
 
 second_bin_expr:
     second_bin_expr MUL third_bin_expr
-{ $$ = new BinExpr("MUL", $1, $3); setl($$);}
+{ $$ = new BinExpr("MUL", $1, $3); }
     | second_bin_expr DIV third_bin_expr
-{ $$ = new BinExpr("DIV", $1, $3); setl($$);}
+{ $$ = new BinExpr("DIV", $1, $3); }
     | second_bin_expr IDIV third_bin_expr
-{ $$ = new BinExpr("DIV", $1, $3); setl($$);}
+{ $$ = new BinExpr("DIV", $1, $3); }
     | second_bin_expr AND third_bin_expr
-{ $$ = new BinExpr("AND", $1, $3); setl($$);}
+{ $$ = new BinExpr("AND", $1, $3); }
     | second_bin_expr MOD third_bin_expr
-{ $$ = new BinExpr("MOD", $1, $3); setl($$);}
+{ $$ = new BinExpr("MOD", $1, $3); }
     | third_bin_expr
 { $$ = $1; }
 ;
 
 third_bin_expr:
     NOT third_bin_expr
-{ $$ = new UnaryExpr("NOT", $2); setl($$);}
+{ $$ = new UnaryExpr("NOT", $2); }
     | SUB third_bin_expr
-{ $$ = new UnaryExpr("SUB", $2); setl($$);}
+{ $$ = new UnaryExpr("SUB", $2); }
     | ID LPR expr_list RPR
-{ $$ = new FunCallExpr((string)$1, $3); setl($$);}
+{ $$ = new FunCallExpr((string)$1, $3); }
     | array_expr
 { $$ = $1; }
     | LPR expr_node RPR
@@ -315,27 +311,27 @@ third_bin_expr:
 
 array_expr:
     ID LBR expr_node RBR {
-        $$ = new ArrayExpr((string)$1, $3);setl($$);
+        $$ = new ArrayExpr((string)$1, $3);
     }
 ;
 
 for_node:
     FOR ID ASSIGN expr_node TO expr_node DO exec_part SEMI {
-        $$ = new ForStmt((string)$2, $4, $6, $8->sl); setl($$);
+        $$ = new ForStmt((string)$2, $4, $6, $8->sl); 
     }
     | FOR ID ASSIGN expr_node TO expr_node DO stmt_node {
         StmtList* sl = new StmtList($8);
-        $$ = new ForStmt((string)$2, $4, $6, sl);setl($$);
+        $$ = new ForStmt((string)$2, $4, $6, sl);
     }
 ;
 
 while_node:
     WHILE expr_node DO exec_part SEMI{
-        $$ = new WhileStmt($2, $4->sl); setl($$);
+        $$ = new WhileStmt($2, $4->sl); 
     }
     | WHILE expr_node DO stmt_node {
         StmtList* sl = new StmtList($4);
-        $$ = new WhileStmt($2, sl);setl($$);
+        $$ = new WhileStmt($2, sl);
     }
 ;
 
@@ -345,33 +341,34 @@ if_node:
     | IF LPR expr_node RPR THEN stmt_node else_node
 { StmtList* sl = new StmtList();
   sl->pushStmt($6);
-  $$ = new IfStmt($3, sl, $7); setl($$);}
+  $$ = new IfStmt($3, sl, $7); }
 ;
 
 else_node:
     ELSE exec_part SEMI
-{ $$ = new ElseStmt($2->sl); setl($$);}
+{ $$ = new ElseStmt($2->sl); }
     | 
-{ $$ = new ElseStmt(); setl($$);}
+{ $$ = new ElseStmt(); }
 ;
 
 break_node:
     BREAK SEMI
-{ $$ = new BreakStmt(); setl($$);}
+{ $$ = new BreakStmt(); }
 ;
 
 call_node:
     ID LPR expr_list RPR SEMI
-{ $$ = new FuncCallStmt((string)$1, $3); setl($$);}
+{ $$ = new FuncCallStmt((string)$1, $3); }
 ;
 
 repeat_node:
     REPEAT stmt_list UNTIL expr_node SEMI{ 
-        $$ = new RepeatStmt($4, $2); setl($$);
+        $$ = new RepeatStmt($4, $2); 
     }
 ;
 
 %%
 void yyerror (char const *s) {
-   printf ("%s at %d\n", s, yylval.location);
+   printf ("%s\n", s);
+   
  }

@@ -184,7 +184,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 12 "./parse/grammar.y" /* yacc.c:1909  */
+#line 13 "./parse/grammar.y" /* yacc.c:1909  */
 
     int type_int;
     float type_float;

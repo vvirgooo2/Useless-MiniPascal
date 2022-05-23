@@ -1,4 +1,3 @@
-%option noyywrap yylineno caseless
 %{
 #include <string>
 #include <string.h>
@@ -6,11 +5,11 @@
 #include <stdio.h>
 #include "../ast/AST_node.h"
 #include "yacc.hpp"
-#define YY_USER_ACTION yylloc.first_line = yylineno;
 using namespace std;
 void yyerror(char* s);
 %}
 %option noyywrap
+%s STARTCOND
 
 digit [0-9]
 letter [a-zA-Z]
@@ -20,8 +19,11 @@ id ({letter}|_)+({letter}|_|{digit})*
 
 %%
 "integer" { return TYPE_INT; printf("integer");}
+
 "real" { return TYPE_FLOAT_8;}
+
 "char" { return TYPE_CHAR;}
+
 "string" { return TYPE_STRING;}
 
 "not" { return NOT;}
@@ -50,6 +52,7 @@ id ({letter}|_)+({letter}|_|{digit})*
 ":" { return COL;}
 ";" { return SEMI;}
 "^" { return CARET;}
+"\n" {}
 
 "array" { return ARRAY;}
 "begin" { return BEGN;}
@@ -75,21 +78,19 @@ id ({letter}|_)+({letter}|_|{digit})*
 
 
 [0-9]{digit}* {
-    yylval.type_int = atoi(yytext);   
+    yylval.type_int = atoi(yytext);
+     
     return INT;
 }
 
 -?(0|int)[.]{digit}+ {
     yylval.type_float = atof(yytext);
+     
     return FLOAT;
 }
 
 {string} {
-    char s[30] = {0};
-    for(int i=0;i<strlen(yytext)-2;i++){
-        s[i] = yytext[i+1];
-    }
-    yylval.type_string = s;
+    yylval.type_string = yytext;
     return STRING;
 }
 "'\\n'" {
@@ -97,30 +98,23 @@ id ({letter}|_)+({letter}|_|{digit})*
     return CHAR;
 }
 
-"'\\0" {
+"'\\0'" {
     yylval.type_char = 0;
     return CHAR;
 }
 {char} {
     yylval.type_char = yytext[1];
-     
     return CHAR;
 }
 
 {id} {
     yylval.id = strdup(yytext);
-     
     return ID;
 }
-" " {}
-\n|\r\n {}
-. { 
-    char s[100] = "wrong syntax";
-    yyerror(s); 
-  }
+
+. { }
 
 %%
 void yyerror(char *s) {
-  printf("%s at line %d\n", s,yylineno);
+  printf("%s\n", s);
 }
-

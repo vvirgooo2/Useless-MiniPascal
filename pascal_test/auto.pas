@@ -144,8 +144,7 @@ begin
     writeln("Credits Remaining: ",need);
 
     writeln("");
-    write("Possible Courses to Take");
-    writeln(" Next");
+    writeln("Possible Courses to Take Next");
     
     j:=1;
     k:=1;
@@ -184,11 +183,8 @@ begin
         end;
     end;
     if(need=0) then begin
-        write("  None - Congratulations");
-        writeln("!");
+        writeln("  None - Congratulations!");
     end;
     
-    
-
 
 end.

@@ -416,19 +416,19 @@ llvm::Value* RepeatStmt::CodeGen(CodeGenContext &context){
 
 llvm::Value* WhileStmt::CodeGen(CodeGenContext &context){
     cout<<"Generating while statement..."<<endl;
-    auto wb = llvm::BasicBlock::Create(context.module->getContext(),"whileentry",context.curfunction);
+    auto entry = llvm::BasicBlock::Create(context.module->getContext(),"whileentry",context.curfunction);
     auto loop = llvm::BasicBlock::Create(context.module->getContext(),"whilebody",context.curfunction);
     auto next = llvm::BasicBlock::Create(context.module->getContext(),"next",context.curfunction);
 
-    context.builder.CreateBr(wb);
-    context.builder.SetInsertPoint(wb);
+    context.builder.CreateBr(entry);
+    context.builder.SetInsertPoint(entry);
     auto condition = this->getConditionExprNode()->CodeGen(context);
     auto ret = context.builder.CreateCondBr(condition,loop,next);
 
     context.builder.SetInsertPoint(loop);
-    context.pushBlock(loop,next,wb);
+    context.pushBlock(loop,next,entry);
     this->getStmtListNode()->CodeGen(context);
-    context.builder.CreateBr(wb);
+    context.builder.CreateBr(entry);
     context.popBLock();
 
     context.builder.SetInsertPoint(next);

@@ -261,12 +261,12 @@ public:
 class FuncBody : public BaseNode
 {
 private:
-    VarDeclList *dp;
+    DeclPart *dp;
     ExecPart *ex;
 
 public:
-    FuncBody(VarDeclList *p, ExecPart *e) : BaseNode("funcbody"), dp(p), ex(e) {}
-    VarDeclList *getDeclPartNode() { return this->dp; }
+    FuncBody(DeclPart *p, ExecPart *e) : BaseNode("funcbody"), dp(p), ex(e) {}
+    DeclPart *getDeclPartNode() { return this->dp; }
     ExecPart *getExecPartNode() { return this->ex; }
     virtual llvm::Value *CodeGen(CodeGenContext &context);
 };

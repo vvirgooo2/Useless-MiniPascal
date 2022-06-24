@@ -13,15 +13,29 @@
  我们实现的语言是类似 Pascal 语言格式的 MiniPascal 语言，可以说是 Pascal 语言的子集，在一些地方做出了改变。
 
  我们支持的功能有：
+- Pascal编程语言的子集，包含Pascal的嵌套特性、non-local机制
 
 - 基本数据类型：integer，char，bool，real
+
 - 数组：支持所有基本数据类型
+
 - 全局变量与局部变量的声明与使用
+
 - 函数的声明与调用
+
 - 基本语句：if-else, while, repeat, for, break 等
+
 - 注释
+
 - 赋值语句和运算语句隐含类型转换
+
 - 编译错误提示
+
+- 简单错误恢复
+
+- 编译优化：常量折叠
+
+  
 
  我们开发的环境为：Ubuntu -18.04，flex，bison，LLVM-6.0，Clang-6.0
 
@@ -47,7 +61,7 @@
 
 在这次的实验当中，我们使用 flex 来完成词法分析过程。flex（快速词法分析产生器，fast lexical analyzer generator）是一种词法分析程序。它是 lex 的开放源代码版本，以 BSD 许可证发布。通常与 GNU bison 一同运作，但是它本身不不是 GNU 计划的一部分。
 词法分析是将字符序列列转换为标记(token)序列列的过程。在词法分析阶段，编译器器读入源程序字符串流，将字符流转换为标记序列，同时将所需要的信息存储，然后将结果交给语法分析器。这是编译程序的第一个阶段且是必要阶段；词法分析的核心任务是扫描、识别单词且对识别出的单词给出定性、定长的处理。处理完成后，词法分析程序会生成将之前的程序文本转变为一系列 token，传给之后的语法分析程序。示意图如下：
-<img src="img/122.png" width="40%" />
+<img src="img/122.png" width="40%" />  
 标准 lex 文件由三部分组成，分别是定义区、规则区和⽤用户子过程区。在定义区，⽤用户可以编写 C 语⾔言中的声明语句，导入需要的头文件或声明变量。在规则区，用户需要编写以正则表达式和对应的动作的形式的代码。在用户子过程区，用户可以定义函数。
 
 ##### 2.2 实现过程
@@ -796,7 +810,8 @@ public:
     llvm::Function *mainFunction;
     llvm::LLVMContext globalcontext;
     llvm::Function *curfunction;
-
+	std::vector<llvm::Function*> FuncStack;
+    std::vector<CodeGenBlock *> BlockStack;
     //system function
     llvm::Function *printf_func;
     llvm::Function *scanf_func;
@@ -806,9 +821,13 @@ public:
 
 context 类中存储的变量有：isGlobal-当前是否在全局变量区。genpointer-当前是否在产生指针。breakif-当前 if 是否为 break 的 if 等信息。其中比较重要的属性为：module 代表当前文件，curfunction 代表当前所在函数，builder 是 llvm 的一个工具类，可以指定插入的 Block 进行代码插入。
 
+FuncStack用来存储函数嵌套的层次，BlockStack用来保存基本块嵌套的层次。
+
 另外 context 中还定义了两个系统函数：输入和输出。
 
 每个节点的 CodeGen 方法都需要讲 context 作为参数来获取上下文信息。
+
+
 
 ###### 下面将会展示每类节点的 CodeGen 方法的实现，在主函数中，只需要调用根节点的 Codegen 方法即可遍历整棵树。
 
@@ -827,7 +846,7 @@ context 类中存储的变量有：isGlobal-当前是否在全局变量区。gen
 - 保存上下文并将上下文切换到函数中
 - 生成参数的局部变量
 - 生成代表返回值的局部变量
-- 生成函数体
+- 生成函数体（函数体中如果还有函数定义，则利用该函数栈嵌套定义）
 - 返回返回值
 - 恢复上下文
 - api 示例如下：
@@ -842,9 +861,22 @@ auto function = llvm::Function::Create(func_type,llvm::Function::ExternalLinkage
 ###### 变量定义的方法为：
 
 - 获取变量的 Type （array 或 simple）
-- 检测全局或局部
-- 调用 llvm 的 api 进行声明
-- api 示例如下：
+- 检测是否是non-local变量
+- 因为要实现non-local功能，所以所有变量在IR中的格式必须为全局，这样才能被子函数访问
+- 定义的格式例如：
+
+```
+main/func1/childfunc1/a
+main/func1/a
+
+IR 示例：
+@"main/q" = global i32 0
+@"main/a/x" = global i32 0
+@"main/a/y" = global i32 0
+@"main/a/b/y" = global i32 0
+```
+
+
 
 ```c++
        llvm::Value * ret;
@@ -858,7 +890,7 @@ auto function = llvm::Function::Create(func_type,llvm::Function::ExternalLinkage
        return ret;
 ```
 
-###### 在变量定义的时候，根据数组和基本类型调用不同的 api
+###### 在变量定义的时候，根据数组和基本类型调用不同的 api,数组的定义也是同理，也要存储路径
 
 ##### 6.5、语句相关类型
 
@@ -1112,6 +1144,62 @@ end.
 ###### 测试结果：
 
 <img src="img/6.jpg" width="50%" />
+
+
+
+###### 嵌套特性的测试：
+
+```Pascal
+program env;
+var q: integer;
+
+function a(i:integer):integer;
+var 
+x: integer;
+y: integer;
+    
+    function b(i:integer):integer;
+    var
+    y: integer;
+    begin
+        y := 30;
+        writeln(y);
+        b := x+1;
+    end;
+
+begin
+    y:=3;
+    x:=3; 
+    x:=b(i);
+    writeln(y);
+    a:=x;
+end;
+
+begin
+    writeln("output:");
+    q:=1;
+    q:=a(q);
+    writeln(q);
+end.
+// output 30 3 4
+```
+
+结果如下：
+
+```
+output:
+30
+3
+4
+```
+
+分析：
+
+1、**b**中的局部变量y屏蔽a中的y
+
+2、**b**可访问a的局部变量x
+
+
 
 ### 八、心得与体会
 

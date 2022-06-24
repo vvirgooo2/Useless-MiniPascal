@@ -184,8 +184,9 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 13 "./parse/grammar.y" /* yacc.c:1909  */
+#line 14 "./parse/grammar.y" /* yacc.c:1909  */
 
+    int location;
     int type_int;
     float type_float;
     char type_char;
@@ -224,7 +225,7 @@ union YYSTYPE
     FunCallExpr* funcall_expr;
     ArrayExpr* array_expr;
 
-#line 228 "./parse/yacc.hpp" /* yacc.c:1909  */
+#line 229 "./parse/yacc.hpp" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -232,9 +233,23 @@ typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
+/* Location type.  */
+#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+};
+# define YYLTYPE_IS_DECLARED 1
+# define YYLTYPE_IS_TRIVIAL 1
+#endif
+
 
 extern YYSTYPE yylval;
-
+extern YYLTYPE yylloc;
 int yyparse (void);
 
 #endif /* !YY_YY_PARSE_YACC_HPP_INCLUDED  */

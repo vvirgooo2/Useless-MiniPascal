@@ -26,12 +26,14 @@
 #include <llvm/ExecutionEngine/GenericValue.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/IR/ValueSymbolTable.h>
+
+#include <memory>
 #include "../ast/AST_node.h"
 using namespace std;
 class Program;
 class BaseNode;
 class CodeGenBlock;
-class CodeGenContext;
+class genContext;
 //loop stack 存嵌套循环
 class CodeGenBlock{
 public:
@@ -41,9 +43,10 @@ public:
     llvm::BasicBlock* Continto=NULL;
 };
 
-class CodeGenContext{
+class genContext{
 private:
     std::map<std::string,pair<int,int>> arrayrecord;
+    std::map<std::string,llvm::Function*> funcrecord;
 public:
     bool isGlobal=true;
     bool genpointer=false;
@@ -60,7 +63,7 @@ public:
     llvm::Function *printf_func;
     llvm::Function *scanf_func;
 
-    CodeGenContext():builder(globalcontext){
+    genContext():builder(globalcontext){
         this->module = new llvm::Module("main",globalcontext);
         regis();
     }
@@ -88,15 +91,29 @@ public:
     }
 
     llvm::Value* getValue(string name){
-        for(auto it=FuncStack.rbegin();it!=FuncStack.rend();++it){
-            if((*it)->getValueSymbolTable()->lookup(name)){
-                return (*it)->getValueSymbolTable()->lookup(name);
+        
+        //返回值和参数可以存成局部的
+        if(curfunction->getValueSymbolTable()->lookup(name)){
+            cout<<"get: "<<name<<endl;
+            return curfunction->getValueSymbolTable()->lookup(name);
+        }
+
+        string path = getpath();
+        string fullname;
+
+        while(path!=""){
+            fullname = path +name;
+            cout<<"get: "<<fullname<<endl;
+            if(module->getGlobalVariable(fullname)){
+                return module->getGlobalVariable(fullname);
             }
+            path = path.substr(0,path.length()-1);
+            int pos = path.rfind("/");
+            if(pos==-1) break;
+            path = path.substr(0,pos+1); 
         }
-        if(module->getGlobalVariable(name)){
-            return module->getGlobalVariable(name);
-        }
-        else throw std::runtime_error("Undeclared Variable: "+name);
+
+        throw std::runtime_error("Undeclared Variable: "+name);
     }
 
     void setArrayRecord(string name, int s, int e){
@@ -104,18 +121,21 @@ public:
     }
 
     std::pair<int,int> getArrayRecord(string name){
-        //local
-        for(auto it=FuncStack.rbegin();it!=FuncStack.rend();++it){
-            string funcname=(*it)->getName();
-            if(arrayrecord.find(funcname+"/"+name)!=arrayrecord.end()){
-                return arrayrecord[funcname+"/"+name];
+        string path = getpath();
+        string fullname;
+
+        while(path!=""){
+            fullname = path +name;
+            cout<<"get: "<<fullname<<endl;
+            if(arrayrecord.find(fullname)!=arrayrecord.end()){
+                return arrayrecord[fullname];
             }
+            path = path.substr(0,path.length()-1);
+            int pos = path.rfind("/");
+            if(pos==-1) break;
+            path = path.substr(0,pos+1); 
         }
-        //global
-        if(arrayrecord.find(name)!=arrayrecord.end()){
-            return arrayrecord[name];
-        }
-        else throw std::runtime_error("ArrayRecord not found: "+name);
+        throw std::runtime_error("ArrayRecord not found: "+name);
     }
 
     void ReplaceTopBlock(llvm::BasicBlock *next){
@@ -127,6 +147,42 @@ public:
         popBLock();
         pushCodeGenBlock(nextBlock);
     }
+
+    string getpath(){
+        string path="";
+        for(auto i: FuncStack){
+            path += i->getName();
+            path += "/";
+        }
+        return path;
+    }
+
+    llvm::Function* getFunction(string name){
+        
+        string path = getpath();
+        cout<<"getchild Func: "<<path+name<<endl;
+        if(funcrecord.find(path+name)!=funcrecord.end()){
+            
+            return funcrecord[path+name];
+        }
+        path = path.substr(0,path.length()-1);
+        int pos = path.rfind("/");
+        if(pos==-1) throw std::runtime_error("Function not found: "+name);
+        path = path.substr(0,pos+1); 
+        cout<<"getpara Func: "<<path+name<<endl;
+        if(funcrecord.find(path+name)!=funcrecord.end()){
+            return funcrecord[path+name];
+        }
+
+        throw std::runtime_error("Function not found: "+name);
+    }
+
+    void setfuncrecord(string name, llvm::Function* func){
+        string path = getpath();
+        cout<<"setFunc: "<<path+name<<endl;
+        this->funcrecord[path+name]=func;
+    }
+
     
 };
 

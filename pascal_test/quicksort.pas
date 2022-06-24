@@ -11,13 +11,12 @@ begin
     repeat
         while (a[i]<m) do i:=i+1;
         while (a[j]>m) do j:=j-1;
-        if( not(i>j)) then
-        begin
-        t:=a[i];
-        a[i]:=a[j];
-        a[j]:=t;
-        i:=i+1;
-        j:=j-1;
+        if( not(i>j)) then begin
+            t:=a[i];
+            a[i]:=a[j];
+            a[j]:=t;
+            i:=i+1;
+            j:=j-1;
         end;
     until i>j;
     if (l<j) then qsort(l,j);

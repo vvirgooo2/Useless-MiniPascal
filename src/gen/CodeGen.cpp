@@ -5,7 +5,7 @@
 #include <fcntl.h>
 using namespace std;
 //
-void CodeGenContext::regis(){
+void genContext::regis(){
     vector<llvm::Type *> argtypes;
     argtypes.push_back(llvm::Type::getInt8PtrTy(this->globalcontext));
     llvm::FunctionType *wtype  = llvm::FunctionType::get(llvm::Type::getInt32Ty(globalcontext),argtypes,true);
@@ -26,7 +26,7 @@ void CodeGenContext::regis(){
     this->scanf_func = funcd;
 }   
 
-void CodeGenContext::generate(BaseNode* root){
+void genContext::generate(BaseNode* root){
     Program* r = (Program*) root;
     cout<<"Starting Generating..."<<endl;
     vector<llvm::Type*> argTypes;
@@ -40,6 +40,8 @@ void CodeGenContext::generate(BaseNode* root){
     this->builder.SetInsertPoint(block);
     pushBlock(block);
     cout<<"Global Decl:"<<endl;
+    if(r->getDeclPartNode()) cout<<"DDDD"<<endl;
+    else cout<<"EEEE"<<endl;
     r->getDeclPartNode()->CodeGen(*this);
 
     this->builder.SetInsertPoint(block); //reset insert point
@@ -104,7 +106,7 @@ void CodeGenContext::generate(BaseNode* root){
 //     ExecPart* execp = new ExecPart(stl2);
 //     Program* root = new Program(new ProgHead("test"),declp,execp);
 
-//     CodeGenContext* context = new CodeGenContext();
+//     genContext* context = new genContext();
 //     try{
 //         context->generate(root);
         

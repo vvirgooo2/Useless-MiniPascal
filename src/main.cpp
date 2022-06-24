@@ -14,8 +14,9 @@ int main(int argc,char *argv[]){
     yyparse();
     // Dict *astDict = new Dict(ast_root);
     // astDict->writeJSONFile("./astVisualize/test.json");
-    CodeGenContext* context = new CodeGenContext();
+    genContext* context = new genContext();
     try{
+        if(ast_root==NULL) cout<<"Root notExist"<<endl;
         context->generate(ast_root);
         int fd = open("result.ll", O_CREAT | O_WRONLY, 0644);
         dup2(fd, 1);

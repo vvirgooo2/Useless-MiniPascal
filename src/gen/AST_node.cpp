@@ -1,7 +1,7 @@
 #include "../ast/AST_node.h"
-llvm::Type* getLLVMtype(MyType* typenode,CodeGenContext &context);
+llvm::Type* getLLVMtype(MyType* typenode,genContext &context);
 /*---------------------------Expr-------------------------*/
-llvm::Value* BinExpr::CodeGen(CodeGenContext &context){
+llvm::Value* BinExpr::CodeGen(genContext &context){
     cout<<"Generating BinExpr..."<<endl;
     llvm::Value *L = lhs->CodeGen(context);
     llvm::Value *R = rhs->CodeGen(context);
@@ -47,7 +47,7 @@ llvm::Value* BinExpr::CodeGen(CodeGenContext &context){
     return NULL;
 }
 
-llvm::Value* UnaryExpr::CodeGen(CodeGenContext &context){
+llvm::Value* UnaryExpr::CodeGen(genContext &context){
     cout<<"Generating Unary"<<endl;
     if(op == "NOT")
         return context.builder.CreateNot(this->getExprNode()->CodeGen(context));
@@ -57,9 +57,9 @@ llvm::Value* UnaryExpr::CodeGen(CodeGenContext &context){
     return NULL;
 }
 
-llvm::Value* FunCallExpr::CodeGen(CodeGenContext &context){
+llvm::Value* FunCallExpr::CodeGen(genContext &context){
     cout<<"CodeGen FuncallExpression..."<<endl;
-    auto callee = context.module->getFunction(this->getFuncName());
+    auto callee = context.getFunction(this->getFuncName());
     if(callee==NULL){
         throw std::runtime_error("No Function called: "+this->getFuncName());
     }
@@ -70,7 +70,7 @@ llvm::Value* FunCallExpr::CodeGen(CodeGenContext &context){
     return context.builder.CreateCall(callee,args);
 }
 
-llvm::Value* ArrayExpr::CodeGen(CodeGenContext &context){
+llvm::Value* ArrayExpr::CodeGen(genContext &context){
     // get index
     bool ptr = context.genpointer;
     context.genpointer=false;
@@ -95,7 +95,7 @@ llvm::Value* ArrayExpr::CodeGen(CodeGenContext &context){
         return context.builder.CreateLoad(context.builder.CreateInBoundsGEP(arrptr,{zero,trueindex}));
 }
 
-llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
+llvm::Value* IDExpr::CodeGen(genContext &context){
     if(type=="Imm"){
         if(this->immtype=="bool"){
             return llvm::ConstantInt::get(context.builder.getInt1Ty(),this->getBooleanValue(),true);
@@ -132,14 +132,15 @@ llvm::Value* IDExpr::CodeGen(CodeGenContext &context){
 }
 
 
-llvm::Value* DeclPart::CodeGen(CodeGenContext &context){
+llvm::Value* DeclPart::CodeGen(genContext &context){
     this->getVarListNode()->CodeGen(context);
+    cout<<"enter funcList"<<endl;
     this->getFuncPartNode()->CodeGen(context);
     return NULL;
 }
 
 /*-----------------------------Function Declare------------------------*/
-llvm::Value* FuncDeclList::CodeGen(CodeGenContext &context){
+llvm::Value* FuncDeclList::CodeGen(genContext &context){
     auto list=this->getFuncList();
     for(auto iter=list.begin(); iter!=list.end(); iter++){
         (*iter)->CodeGen(context);
@@ -147,7 +148,7 @@ llvm::Value* FuncDeclList::CodeGen(CodeGenContext &context){
     return NULL;
 }
 
-llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
+llvm::Value* OneFuncDecl::CodeGen(genContext &context){
     //check
     if(context.module->getFunction(this->getFuncDeclNode()->getFuncName())){
         throw std::runtime_error("ReDefination of function: "+this->getFuncDeclNode()->getFuncName());
@@ -177,14 +178,17 @@ llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
     llvm::BasicBlock* entry = llvm::BasicBlock::Create(context.module->getContext(),"entry",function);
     context.curfunction = function;
     auto  old_block = context.builder.GetInsertBlock();
+    context.setfuncrecord(this->getFuncDeclNode()->getFuncName(),function);
     context.FuncStack.push_back(function);
+    
+
     context.pushBlock(entry);
     context.builder.SetInsertPoint(entry);
     
     //initial para
+    context.isGlobal=false;
     llvm::Value *para_values;
     auto valueiter = function->arg_begin();
-    context.isGlobal = false;
     for(auto decl :this->getFuncDeclNode()->getParaList()->getParaList()){
         decl->CodeGen(context);
         for(auto id: decl->getIDListNode()->getList()){
@@ -201,11 +205,12 @@ llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
         context.builder.CreateStore(context.builder.getInt32(0),r);
     else if(rettype->isDoubleTy())
         context.builder.CreateStore(llvm::ConstantFP::get(rettype,0.0),r);
-
+    context.isGlobal=true;
     //body
     this->getFuncBodyNode()->CodeGen(context);
 
     //return
+    cout<<"Create return"<<endl;
     context.builder.CreateRet(context.builder.CreateLoad(r,false,""));
 
     //return context
@@ -217,19 +222,20 @@ llvm::Value* OneFuncDecl::CodeGen(CodeGenContext &context){
     return NULL;
 }
 
-llvm::Value* FuncBody::CodeGen(CodeGenContext &context){
+llvm::Value* FuncBody::CodeGen(genContext &context){
     this->getDeclPartNode()->CodeGen(context);
     this->getExecPartNode()->CodeGen(context);
+    cout<<"Body Genend"<<endl;
     return NULL;
 }
 
 
 /* ---------------------------Stmt and Mainpart----------------------------*/
-llvm::Value* ExecPart::CodeGen(CodeGenContext &context){
+llvm::Value* ExecPart::CodeGen(genContext &context){
     return this->getStmtListNode()->CodeGen(context);
 }
 
-llvm::Value* StmtList::CodeGen(CodeGenContext &context){
+llvm::Value* StmtList::CodeGen(genContext &context){
     auto list = this->getStmtList();
     for(auto stmt: list){
         stmt->CodeGen(context);
@@ -237,7 +243,7 @@ llvm::Value* StmtList::CodeGen(CodeGenContext &context){
     return NULL;
 }
 
-llvm::Value* AssignStmt::CodeGen(CodeGenContext &context){
+llvm::Value* AssignStmt::CodeGen(genContext &context){
     cout<<"Generate AssignStmt..."<<endl;
 
     context.genpointer=true;
@@ -259,7 +265,7 @@ llvm::Value* AssignStmt::CodeGen(CodeGenContext &context){
 }
 
 
-llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
+llvm::Value *SysCall(FuncCallStmt* call,genContext &context){
     if(call->getFuncName()=="write"||call->getFuncName()=="writeln"||call->getFuncName()=="write10d"){
         string format;
         vector<llvm::Value*>  args;
@@ -342,7 +348,7 @@ llvm::Value *SysCall(FuncCallStmt* call,CodeGenContext &context){
 }
 
 
-llvm::Value* FuncCallStmt::CodeGen(CodeGenContext &context){
+llvm::Value* FuncCallStmt::CodeGen(genContext &context){
     cout<<"Generating FuncCallStmt..."<<endl;
     if(this->getFuncName()=="write"||this->getFuncName()=="writeln"|| this->getFuncName()=="write10d"){
         return SysCall(this,context);
@@ -357,7 +363,7 @@ llvm::Value* FuncCallStmt::CodeGen(CodeGenContext &context){
     }
     return NULL;
 }
-llvm::Value* ForStmt::CodeGen(CodeGenContext &context){
+llvm::Value* ForStmt::CodeGen(genContext &context){
     cout<<"Generating ForStmt..."<<endl;
     auto entry = llvm::BasicBlock::Create(context.builder.getContext(),"forentry",context.curfunction);
     auto body = llvm::BasicBlock::Create(context.builder.getContext(),"forbody",context.curfunction);
@@ -392,7 +398,7 @@ llvm::Value* ForStmt::CodeGen(CodeGenContext &context){
     return ret;
 }
 
-llvm::Value* RepeatStmt::CodeGen(CodeGenContext &context){
+llvm::Value* RepeatStmt::CodeGen(genContext &context){
     cout<<"Generating RepeatStmt...."<<endl;
     auto body = llvm::BasicBlock::Create(context.module->getContext(),"repeatbody",context.curfunction);
     auto end = llvm::BasicBlock::Create(context.module->getContext(),"end",context.curfunction);
@@ -414,7 +420,7 @@ llvm::Value* RepeatStmt::CodeGen(CodeGenContext &context){
     return ret;
 }
 
-llvm::Value* WhileStmt::CodeGen(CodeGenContext &context){
+llvm::Value* WhileStmt::CodeGen(genContext &context){
     cout<<"Generating while statement..."<<endl;
     auto entry = llvm::BasicBlock::Create(context.module->getContext(),"whileentry",context.curfunction);
     auto loop = llvm::BasicBlock::Create(context.module->getContext(),"whilebody",context.curfunction);
@@ -436,13 +442,13 @@ llvm::Value* WhileStmt::CodeGen(CodeGenContext &context){
     return ret;
 }
 
-llvm::Value* ElseStmt::CodeGen(CodeGenContext &context){
+llvm::Value* ElseStmt::CodeGen(genContext &context){
     if(this->getStmtListNode()!=NULL)
         return this->getStmtListNode()->CodeGen(context);
     else return NULL;
 }
 
-llvm::Value* IfStmt::CodeGen(CodeGenContext &context){
+llvm::Value* IfStmt::CodeGen(genContext &context){
 
     cout<<"Generating IfStmt..."<<endl;
     llvm::Value* test = this->getConditionNode()->CodeGen(context);
@@ -473,7 +479,7 @@ llvm::Value* IfStmt::CodeGen(CodeGenContext &context){
     return NULL;
 }
 
-llvm::Value* BreakStmt::CodeGen(CodeGenContext &context){
+llvm::Value* BreakStmt::CodeGen(genContext &context){
     if(context.getTopBlock()->Breakto==NULL)
         throw std::runtime_error("BreakStmt not in Any loop body");
     context.breakif=true;
@@ -484,14 +490,14 @@ llvm::Value* BreakStmt::CodeGen(CodeGenContext &context){
 
 /**--------------------- Value Declare-------------------------*/
 
-llvm::Value* VarDeclList::CodeGen(CodeGenContext &context){
+llvm::Value* VarDeclList::CodeGen(genContext &context){
     vector<VarDecl*> list = this->getList();
     for(auto it=list.begin(); it!=list.end();it++){
        (*it)->CodeGen(context);
     }
     return NULL;
 }
-llvm::Value* createArray(CodeGenContext &context, MyType* typenode,vector<string> namelist){
+llvm::Value* createArray(genContext &context, MyType* typenode,vector<string> namelist){
     ArrayType* node = (ArrayType*) typenode;
     int len=node->getIndexArrage().second - node->getIndexArrage().first+1;
     string name = node->getTypeName();
@@ -503,7 +509,7 @@ llvm::Value* createArray(CodeGenContext &context, MyType* typenode,vector<string
     }
     return NULL;
 }
-llvm::Value* createGlobalArray(CodeGenContext &context, MyType* typenode,vector<string> namelist){
+llvm::Value* createGlobalArray(genContext &context, MyType* typenode,vector<string> namelist){
     ArrayType* node = (ArrayType*) typenode;
     int len=node->getIndexArrage().second - node->getIndexArrage().first+1;
     string name = node->getTypeName();
@@ -521,16 +527,17 @@ llvm::Value* createGlobalArray(CodeGenContext &context, MyType* typenode,vector<
 
     llvm::Constant* initarr = llvm::ConstantArray::get(llvm::ArrayType::get(simpletype,len),initv);
     string funcname  = context.curfunction->getName();
+    string path = context.getpath();
     for(string it:namelist){
-        context.setArrayRecord(it,node->getIndexArrage().first,node->getIndexArrage().second);
-        auto r = new llvm::GlobalVariable(*context.module,initarr->getType(),false,llvm::GlobalValue::ExternalLinkage,0,it);
+        context.setArrayRecord(path+it,node->getIndexArrage().first,node->getIndexArrage().second);
+        auto r = new llvm::GlobalVariable(*context.module,initarr->getType(),false,llvm::GlobalValue::ExternalLinkage,0,path+it);
         r->setInitializer(initarr);
         cout<<"Create GlobalArray: "+it<<endl;
     }   
     return NULL;
 }
 
-llvm::Type* getLLVMtype(MyType* typenode,CodeGenContext &context){
+llvm::Type* getLLVMtype(MyType* typenode,genContext &context){
     string name;
     if(typenode->getClass()=="simpletype"){
         name = ((SimpleType*)typenode)->getSimpleTypeName();
@@ -560,33 +567,34 @@ llvm::Type* getLLVMtype(MyType* typenode,CodeGenContext &context){
     return NULL;
 }
 
-llvm::Value* VarDecl::CodeGen(CodeGenContext &context){
+llvm::Value* VarDecl::CodeGen(genContext &context){
     auto list=this->getIDListNode()->getList();
     MyType* tn= this->getTypeNode();
     //global
     if(context.isGlobal){
+        string path = context.getpath();
         if(tn->getClass()=="simpletype"){
-            auto *ty = getLLVMtype(tn,context);
-            llvm::Constant *constant;
-            if(ty->isIntegerTy()){
-                constant = llvm::ConstantInt::get(ty,0);
+                auto *ty = getLLVMtype(tn,context);
+                llvm::Constant *constant;
+                if(ty->isIntegerTy()){
+                    constant = llvm::ConstantInt::get(ty,0);
+                }
+                else if(ty->isDoubleTy()){
+                    constant = llvm::ConstantFP::get(ty,0.0);
+                }
+                llvm::Value * ret;
+                for(auto i=list.begin(); i!=list.end(); i++){
+                    string varname = path+*i;
+                    ret = new llvm::GlobalVariable(*context.module,ty,false,llvm::GlobalVariable::ExternalLinkage,constant,varname);
+                    cout<<"create global: "<<varname<<endl;
+                }
+                return ret; 
             }
-            else if(ty->isDoubleTy()){
-                constant = llvm::ConstantFP::get(ty,0.0);
+            else{
+                //array type
+                return createGlobalArray(context,tn,list);
             }
-            llvm::Value * ret;
-            for(auto i=list.begin(); i!=list.end(); i++){
-                ret = new llvm::GlobalVariable(*context.module,ty,false,llvm::GlobalVariable::ExternalLinkage,constant,*i);
-                cout<<"create global: "<<*i<<endl;
-            }
-            return ret; 
-        }
-        else{
-            //array type
-            return createGlobalArray(context,tn,list);
-        }
     }
-    //not global
     else {
         if(tn->getClass()=="simpletype"){
             auto type_ = getLLVMtype(tn,context);
@@ -606,40 +614,40 @@ llvm::Value* VarDecl::CodeGen(CodeGenContext &context){
 
 
 /* -------------------------------No Need To Implement-----------------------------*/
-llvm::Value* IDList::CodeGen(CodeGenContext &context){
+llvm::Value* IDList::CodeGen(genContext &context){
     return NULL;
 }
 
-llvm::Value* MyType::CodeGen(CodeGenContext &context){
+llvm::Value* MyType::CodeGen(genContext &context){
     return NULL;
 }
 
-llvm::Value* SimpleType::CodeGen(CodeGenContext &context){
+llvm::Value* SimpleType::CodeGen(genContext &context){
     return NULL;
 }
 
-llvm::Value* ArrayType::CodeGen(CodeGenContext &context){
+llvm::Value* ArrayType::CodeGen(genContext &context){
     return NULL;
 }
 
-llvm::Value* Program::CodeGen(CodeGenContext &context){
+llvm::Value* Program::CodeGen(genContext &context){
     return NULL;
 }
 
-llvm::Value* ParaList::CodeGen(CodeGenContext &context){
+llvm::Value* ParaList::CodeGen(genContext &context){
     return NULL;
 }
 
-llvm::Value* FuncHead::CodeGen(CodeGenContext &context){
+llvm::Value* FuncHead::CodeGen(genContext &context){
     return NULL;
 }
 
 
-llvm::Value* ProgHead::CodeGen(CodeGenContext &context){
+llvm::Value* ProgHead::CodeGen(genContext &context){
     return NULL;
 }
 //function's parameters 
-llvm::Value* ExprList::CodeGen(CodeGenContext &context){
+llvm::Value* ExprList::CodeGen(genContext &context){
     return NULL;
 }
 

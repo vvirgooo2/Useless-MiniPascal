@@ -563,6 +563,50 @@ else_node:
 
 条件语句包括一个 if 开头的判断和 else，if 语句包含一个条件判断 expression 和一系列可执行语句集合体，else 语句可以没有。
 
+#### 3.3 错误恢复
+对于我们自己定义的一系列简单错误，例如括号引号的不匹配，漏写或者拼错关键字我们可以实现错误恢复。当语法cfg遇到无法识别的语句时候，他会从当前已经识别的语法中进行调整，将错误的部分手动添加进分析栈中进行分析，并报错，从而完成错误分析。
+例如：
+```c++
+assign_node:
+    ID ASSIGN expr_node SEMI
+{ IDExpr* id = new IDExpr("var", (string)$1); setl($$);
+  $$ = new AssignStmt(id, $3); }
+    | ID ASSIGN expr_node
+{ IDExpr* id = new IDExpr("var", (string)$1); setl($$);
+  $$ = new AssignStmt(id, $3); 
+  int l = yylloc.first_line - 1;
+  char* mt = getfilec(l);
+  printf("line %d: expect ; after %s\n", l, mt);
+  int gt = getbio(l);
+  for(int i=0;i<gt;i++){
+      cout << " ";
+  }
+  for(int i=0;i<strlen(mt);i++){
+      cout << " ";
+  }
+  printf("\e[36m");
+  cout << "                    ";
+  cout << ';' << endl;
+  printf("\e[0m");
+}
+```
+在这个赋值语句中，我们手动添加了对于漏掉分号的的语句的识别，并进行相应的恢复。
+
+#### 3.4 简单优化
+我们实现了在语法分析过程中将立即数进行运算的简单优化，实现方法如下：
+```c++
+{ $$ = new IDExpr("var",(int)($1+$3)); setl($$);}
+|INT SUB INT
+{ $$ = new IDExpr("var",(int)($1-$3)); setl($$);}
+|INT MUL INT
+{ $$ = new IDExpr("var",(int)($1*$3)); setl($$);}
+|INT DIV INT
+{ $$ = new IDExpr("var",(int)($1/$3)); setl($$);}
+|INT ADD FLOAT
+{ $$ = new IDExpr("var",(float)($1+$3)); setl($$);}
+```
+我们对于每一个运算的两边进行判断，如果是立即数，则在建立保存相应的结点的时候，我们先将结果运算出来，之后将算出来的结果保存到语法树中。
+
 ### 四、语法树结构设计
 
 利用面向对象的思想，我们将 AST 的每个节点定义成类和对象。利用多态和继承，我们将语法树的每一个节点抽象为基类 BaseNode，基类中存储着每个节点共有的属性：classname，line-number，并定义了通用的方法及生成中间代码所用的 CodeGen 函数。

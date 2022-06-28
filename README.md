@@ -1,22 +1,24 @@
 # Complier-ZJU2022
 course project  
-1、use git add . to cache  
-2、use git commit -m ""  $MUST COMMIT YOUR PROGRESS$   
-3、git push  
-4、时常使用pull更新，出现错误时，请不要强制提交，先备份最新可运行的代码。
+Pascal语言的子集
 
 建议使用环境：
     Windows SubSystem Linux Ubuntu 18.04
     g++ gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)
-
+    
 ​    Cmake工具链
 ​    flex
 ​    bison
-​    llvm-6.0
+​    llvm-10.0
 
 进度规划与完成度：
 1、pascal标程 完成 √   
 2、讨论ast结构  √  
-3、5.18 通过前两个测试点    
-4、5.20 通过全部测试点  
-5、5.21开始写报告  
+3、5.18 通过前两个测试点   √   
+4、5.20 通过全部测试点   √ 
+5、5.21开始写报告   √ 
+6、6.1 支持嵌套函数和作用域 √
+7、6.2 增加详细报错 √
+8、6.3 增加错误恢复 √
+9、6.3 常量折叠 √
+

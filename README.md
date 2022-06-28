@@ -8,10 +8,9 @@
 - g++ gcc version 7.5.0 (Ubuntu 7.5.0-3ubuntu1~18.04)
 - flex
 - bison  
--  llvm-10.0
+- llvm-10.0
    
-      
-
+    
 进度规划与完成度：  
 1、pascal标程 完成 √   
 2、讨论ast结构  √  
